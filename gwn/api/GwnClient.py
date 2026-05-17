@@ -35,7 +35,7 @@ class GwnClient:
     def __init__(self, config: GwnConfig) -> None:
         self._config = config
         self._interface = GwnInterface(config)
-        self._byte_size_regex: re = re.compile(r"\s*([0-9]+(?:\.[0-9]+)?)\s*([A-Za-z]+)\s*")
+        self._byte_size_regex: re.Pattern[str] = re.compile(r"\s*([0-9]+(?:\.[0-9]+)?)\s*([A-Za-z]+)\s*")
 
     def _normalise_dictionary_data(self, dictionary_data: list[dict[str, Any]] | None) -> dict[str, Any]:
         normalised:dict[str, Any] = {}
@@ -76,7 +76,7 @@ class GwnClient:
             return None
 
     def _size_to_bytes(self, value: str) -> int:
-        units = {
+        units: dict[str, int] = {
             "B": 1,
             "KB": 1024,
             "MB": 1024 ** 2,
@@ -84,10 +84,12 @@ class GwnClient:
             "TB": 1024 ** 4
         }
 
-        match = self._byte_size_regex.match(value)
+        match: re.Match[str] | None = self._byte_size_regex.fullmatch(value)
         if not match:
             raise ValueError(f"Invalid data size string: {value!r}")
 
+        number: str
+        unit: str 
         number, unit = match.groups()
         unit = unit.upper()
 
