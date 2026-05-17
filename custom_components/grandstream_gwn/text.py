@@ -86,7 +86,7 @@ class GwnNetworkText(GwnTextEntity):
             return self._default_value
         value: str | None = network.get(self._key, self._default_value)
         return self._default_value if value is None else str(value)
-        
+
     @property
     def device_info(self) -> DeviceInfo | None:
         if self._current_data() is None:
