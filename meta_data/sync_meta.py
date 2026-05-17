@@ -93,7 +93,7 @@ def main() -> None:
     )
     replace_or_fail(
         HACS_MANIFEST,
-        r'^(\s*)"loggers":\s*"[^"]+"(,?)$',
+        r'^(\s*)"loggers":\s*\[[^\]]+\](,?)$',
         rf'\1"loggers": ["{LOGGERS}"]\2'
     )
     replace_or_fail(

@@ -3,7 +3,7 @@ from typing import ClassVar
 
 @dataclass(slots=True)
 class Constants:
-    LOG:ClassVar[str] = "gwn_mqtt"
+    LOG: ClassVar[str] = "gwn_mqtt"
     APP_VERSION: ClassVar[str] = "0.0.2"
 
     # mqtt keys
