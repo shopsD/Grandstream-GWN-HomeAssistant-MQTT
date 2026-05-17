@@ -26,12 +26,12 @@ def _create_sensor_entity(current_unique_ids: set[str], cached_unique_ids: set[s
     if entity.gwn_unique_id() not in cached_unique_ids:
         new_entities.append(entity) # cache entities to detect later removal
 
-def create_entity(current_unique_ids: set[str], cached_unique_ids: set[str], new_entities: list[GwnSensorEntity], entity_type: Callable[[GwnDataUpdateCoordinator, dict[str, Any], str, str, SensorDeviceClass | None], GwnSensorEntity], coordinator: GwnDataUpdateCoordinator, data: dict[str, Any], key: str, name_suffix: str, device_class: SensorDeviceClass | None = None) -> None:
-    entity: GwnSensorEntity = entity_type(coordinator, data, key, name_suffix, device_class)
+def create_entity(current_unique_ids: set[str], cached_unique_ids: set[str], new_entities: list[GwnSensorEntity], entity_type: Callable[[GwnDataUpdateCoordinator, dict[str, Any], str, str, SensorDeviceClass | None, Any | None], GwnSensorEntity], coordinator: GwnDataUpdateCoordinator, data: dict[str, Any], key: str, name_suffix: str, device_class: SensorDeviceClass | None = None, default_value: Any | None = None) -> None:
+    entity: GwnSensorEntity = entity_type(coordinator, data, key, name_suffix, device_class, default_value)
     _create_sensor_entity(current_unique_ids, cached_unique_ids, new_entities, entity)
 
-def create_device_entity(current_unique_ids: set[str], cached_unique_ids: set[str], new_entities: list[GwnSensorEntity], entity_type: Callable[[GwnDataUpdateCoordinator, dict[str, Any], str, str, str | None, SensorDeviceClass | None], GwnSensorEntity], coordinator: GwnDataUpdateCoordinator, data: dict[str, Any], key: str, name_suffix: str, unit: str | None = None, device_class: SensorDeviceClass | None = None) -> None:
-    entity: GwnSensorEntity = entity_type(coordinator, data, key, name_suffix, unit, device_class)
+def create_device_entity(current_unique_ids: set[str], cached_unique_ids: set[str], new_entities: list[GwnSensorEntity], entity_type: Callable[[GwnDataUpdateCoordinator, dict[str, Any], str, str, str | None, SensorDeviceClass | None, Any | None], GwnSensorEntity], coordinator: GwnDataUpdateCoordinator, data: dict[str, Any], key: str, name_suffix: str, unit: str | None = None, device_class: SensorDeviceClass | None = None, default_value: Any | None = None) -> None:
+    entity: GwnSensorEntity = entity_type(coordinator, data, key, name_suffix, unit, device_class, default_value)
     _create_sensor_entity(current_unique_ids, cached_unique_ids, new_entities, entity)
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
@@ -82,7 +82,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                     create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDSensor, coordinator, ssid, Constants.GHZ5_ENABLED, "5GHz Station")
                     create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDSensor, coordinator, ssid, Constants.GHZ6_ENABLED, "6GHz Station")
                     create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDSensor, coordinator, ssid, Constants.SSID_HIDDEN, "Hide WiFi")
-                    create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDSensor, coordinator, ssid, Constants.SSID_VLAN_ID, "VLAN ID")
+                    create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDSensor, coordinator, ssid, Constants.SSID_VLAN_ID, "VLAN ID", None, "")
                     create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDSensor, coordinator, ssid, Constants.SSID_NAME, "SSID")
                     if ssid[Constants.SSID_KEY] is not None:
                         create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDSensor, coordinator, ssid, Constants.SSID_KEY, "WiFi Passphrase")
@@ -119,7 +119,9 @@ class GwnSensorEntity(CoordinatorEntity, SensorEntity):
         return self._attr_unique_id
 
 class GwnNetworkSensor(GwnSensorEntity):
-    def __init__(self, coordinator: GwnDataUpdateCoordinator, network: dict[str, Any], key: str, name_suffix: str, device_class: SensorDeviceClass | None) -> None:
+    def __init__(self, coordinator: GwnDataUpdateCoordinator, network: dict[str, Any], key: str, name_suffix: str, device_class: SensorDeviceClass | None, default_value: Any | None) -> None:
+        self._default_value: Any | None = default_value
+
         network_id: str = network[Constants.NETWORK_ID]
         name: str = network[Constants.NETWORK_NAME]
         super().__init__(coordinator, network_id, network_id, key, name, name_suffix, device_class, "network")
@@ -127,7 +129,7 @@ class GwnNetworkSensor(GwnSensorEntity):
     @property
     def native_value(self) -> None | str:
         network: dict[str, Any] | None = self._current_data()
-        return None if network is None else network.get(self._key)
+        return self._default_value if network is None else network.get(self._key)
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -149,9 +151,10 @@ class GwnNetworkSensor(GwnSensorEntity):
         return network
 
 class GwnDeviceSensor(GwnSensorEntity):
-    def __init__(self, coordinator: GwnDataUpdateCoordinator, device: dict[str, Any], key: str, name_suffix: str, unit: str | None, device_class: SensorDeviceClass | None) -> None:
+    def __init__(self, coordinator: GwnDataUpdateCoordinator, device: dict[str, Any], key: str, name_suffix: str, unit: str | None, device_class: SensorDeviceClass | None, default_value: Any | None) -> None:
         self._ap_type: str = device[Constants.AP_TYPE]
         self._sw_version: str = device[Constants.CURRENT_FIRMWARE]
+        self._default_value: Any | None = default_value
 
         network_id: str = device[Constants.NETWORK_ID]
         device_mac: str = device[Constants.MAC]
@@ -166,7 +169,7 @@ class GwnDeviceSensor(GwnSensorEntity):
         if device is None:
             return None
         value: int | str | bool | dt.datetime | None = device.get(self._key)
-        return value
+        return self._default_value if value is None else value
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -205,9 +208,10 @@ class GwnDeviceSensor(GwnSensorEntity):
         return device
 
 class GwnSSIDSensor(GwnSensorEntity):
-    def __init__(self, coordinator: GwnDataUpdateCoordinator, ssid: dict[str, Any], key: str, name_suffix: str, device_class: SensorDeviceClass | None) -> None:
+    def __init__(self, coordinator: GwnDataUpdateCoordinator, ssid: dict[str, Any], key: str, name_suffix: str, device_class: SensorDeviceClass | None, default_value: Any | None) -> None:
 
         self._model: str = ssid.get(Constants.NETWORK_NAME, "GWN SSID")
+        self._default_value: Any | None = default_value
 
         network_id: str = ssid[Constants.NETWORK_ID]
         ssid_id: str = ssid[Constants.SSID_ID]
@@ -217,7 +221,7 @@ class GwnSSIDSensor(GwnSensorEntity):
     @property
     def native_value(self) -> None | str | int | bool:
         ssid: dict[str, Any] | None = self._current_data()
-        return None if ssid is None else ssid.get(self._key)
+        return self._default_value if ssid is None else ssid.get(self._key)
 
     @property
     def device_info(self) -> DeviceInfo | None:
