@@ -129,7 +129,7 @@ class GwnNetworkSensor(GwnSensorEntity):
     @property
     def native_value(self) -> None | str:
         network: dict[str, Any] | None = self._current_data()
-        return self._default_value if network is None else network.get(self._key)
+        return self._default_value if network is None else network.get(self._key, self._default_value)
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -166,10 +166,7 @@ class GwnDeviceSensor(GwnSensorEntity):
     @property
     def native_value(self) -> None | str | int | bool | dt.datetime:
         device: dict[str, Any] | None = self._current_data()
-        if device is None:
-            return None
-        value: int | str | bool | dt.datetime | None = device.get(self._key)
-        return self._default_value if value is None else value
+        return self._default_value if device is None else device.get(self._key, self._default_value)
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -221,7 +218,7 @@ class GwnSSIDSensor(GwnSensorEntity):
     @property
     def native_value(self) -> None | str | int | bool:
         ssid: dict[str, Any] | None = self._current_data()
-        return self._default_value if ssid is None else ssid.get(self._key)
+        return self._default_value if ssid is None else ssid.get(self._key, self._default_value)
 
     @property
     def device_info(self) -> DeviceInfo | None:

@@ -83,10 +83,10 @@ class GwnNetworkText(GwnTextEntity):
     def native_value(self) -> str | None:
         network: dict[str, Any] | None = self._current_data()
         if network is None:
-            return None
-        value = network.get(self._key)
+            return self._default_value
+        value: str | None = network.get(self._key, self._default_value)
         return self._default_value if value is None else str(value)
-
+        
     @property
     def device_info(self) -> DeviceInfo | None:
         if self._current_data() is None:
@@ -129,7 +129,7 @@ class GwnDeviceText(GwnTextEntity):
         device: dict[str, Any] | None = self._current_data()
         if device is None:
             return None
-        value = device.get(self._key)
+        value: str | None = device.get(self._key, self._default_value)
         return self._default_value if value is None else str(value)
 
     @property
@@ -189,8 +189,8 @@ class GwnSSIDText(GwnTextEntity):
     def native_value(self) -> str | None:
         ssid: dict[str, Any] | None = self._current_data()
         if ssid is None:
-            return None
-        value = ssid.get(self._key)
+            return self._default_value
+        value: str | None = ssid.get(self._key, self._default_value)
         return self._default_value if value is None else str(value)
 
     @property
