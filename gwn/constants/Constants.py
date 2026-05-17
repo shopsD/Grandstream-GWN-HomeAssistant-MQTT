@@ -34,7 +34,7 @@ class Constants:
     MAC: ClassVar[str] = "mac"
     NAME: ClassVar[str] = "name"
     IPV4: ClassVar[str] = "ip"
-    UP_TIME: ClassVar[str] = "upTime"
+    LAST_BOOT: ClassVar[str] = "lastBoot"
     USAGE: ClassVar[str] = "usage"
     UPLOAD: ClassVar[str] = "upload"
     DOWNLOAD: ClassVar[str] = "download"
