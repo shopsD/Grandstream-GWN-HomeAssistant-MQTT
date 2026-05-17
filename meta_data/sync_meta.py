@@ -26,6 +26,7 @@ def main() -> None:
     REPOSITORY_URL = _project_meta.REPOSITORY_URL
     CONTAINER_URL = _project_meta.CONTAINER_URL
     UPDATE_URL = _project_meta.UPDATE_URL
+    LOGGERS = _project_meta.LOGGERS
 
     SCRIPT_PATH: Path = Path(__file__).resolve()
 
@@ -58,7 +59,7 @@ def main() -> None:
     PYTHON_VERSION_FILE = args.repo_root / ".python-version"
     README = args.repo_root / "README.md"
     COMPOSE_FILE = args.repo_root / "docker-compose.yml"
-    print (f"Syncing files:\n\t{GWN_CONSTANTS}\n\t{VERSION_MANAGER}\n\t{PYPROJECT}\n\t{HACS}\n\t{HACS_MANIFEST}\n\t{PYTHON_VERSION_FILE}\n\t{README}\n\t{COMPOSE_FILE}\nVersions:\n\tApp Version: {APP_VERSION}\n\tPython Version: {PYTHON_VERSION}\n\tPython Requires: {PYTHON_REQUIRES}\n\tHome Assistant Min Version: {HOMEASSISTANT_MIN_VERSION}\n\tRepo URL: {REPOSITORY_URL}\n\tContainer URL: {CONTAINER_URL}\n\tUpdate URL: {UPDATE_URL}")
+    print (f"Syncing files:\n\t{GWN_CONSTANTS}\n\t{VERSION_MANAGER}\n\t{PYPROJECT}\n\t{HACS}\n\t{HACS_MANIFEST}\n\t{PYTHON_VERSION_FILE}\n\t{README}\n\t{COMPOSE_FILE}\nVersions:\n\tApp Version: {APP_VERSION}\n\tPython Version: {PYTHON_VERSION}\n\tPython Requires: {PYTHON_REQUIRES}\n\tHome Assistant Min Version: {HOMEASSISTANT_MIN_VERSION}\n\tRepo URL: {REPOSITORY_URL}\n\tContainer URL: {CONTAINER_URL}\n\tUpdate URL: {UPDATE_URL}\n\tLoggers: {LOGGERS}")
 
     replace_or_fail(
         PYPROJECT,
@@ -91,6 +92,11 @@ def main() -> None:
         rf'\1"documentation": "{REPOSITORY_URL}"\2'
     )
     replace_or_fail(
+        HACS_MANIFEST,
+        r'^(\s*)"loggers":\s*\[[^\]]+\](,?)$',
+        rf'\1"loggers": ["{LOGGERS}"]\2'
+    )
+    replace_or_fail(
         PYTHON_VERSION_FILE,
         r"^[^\n]+$",
         PYTHON_VERSION
@@ -99,6 +105,11 @@ def main() -> None:
         GWN_CONSTANTS,
         r'^(\s*)APP_VERSION:\s*ClassVar\[str\]\s*=\s*"[^"]+"$',
         rf'\1APP_VERSION: ClassVar[str] = "{APP_VERSION}"'
+    )
+    replace_or_fail(
+        GWN_CONSTANTS,
+        r'^(\s*)LOG:\s*ClassVar\[str\]\s*=\s*"[^"]+"$',
+        rf'\1LOG: ClassVar[str] = "{LOGGERS}"'
     )
     replace_or_fail(
         README,
