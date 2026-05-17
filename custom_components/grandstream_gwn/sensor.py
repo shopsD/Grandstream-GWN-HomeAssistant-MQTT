@@ -2,7 +2,7 @@ import datetime as dt
 from collections.abc import Callable
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity, SensorDeviceClass 
+from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback, HomeAssistant
 from homeassistant.helpers import entity_registry as er

@@ -89,7 +89,7 @@ class GwnClient:
             raise ValueError(f"Invalid data size string: {value!r}")
 
         number: str
-        unit: str 
+        unit: str
         number, unit = match.groups()
         unit = unit.upper()
 
@@ -151,10 +151,10 @@ class GwnClient:
                         network=config_info_client["network"],
                         temperature_c=int(config_info_client["temperature"].replace("℃", "").replace("°C", "").strip()),
                         usedMemory_bytes=self._size_to_bytes(config_info_client["usedMemory"]),
-                        channelload_2g4_percent=int(config_info_client["channelload_2g4"].replace("%","").strip()),
-                        cpuUsage_percent=int(config_info_client["cpuUsage"].replace("%","").strip()),
-                        channelload_6g_percent=int(config_info_client["channelload_6g"].replace("%","").strip()),
-                        channelload_5g_percent=int(config_info_client["channelload_5g"].replace("%","").strip()),
+                        channelload_2g4_percent=int(config_info_client["channelload_2g4"]) if config_info_client["channelload_2g4"] is not None else 0,
+                        cpuUsage_percent=int(config_info_client["cpuUsage"].replace("%","").strip()) if config_info_client["cpuUsage"] is not None else 0,
+                        channelload_6g_percent=int(config_info_client["channelload_6g"]) if config_info_client["channelload_6g"] is not None else 0,
+                        channelload_5g_percent=int(config_info_client["channelload_5g"]) if config_info_client["channelload_5g"] is not None else 0,
 
                         ap_2g4_channel= 0 if str(device_info_channel["ap_2g4_channel"]["defaultValue"]) == "Use Radio Settings" else int(config_info_client["g24"]["channel"]["value"]),
                         ap_5g_channel= 0 if str(device_info_channel["ap_5g_channel"]["defaultValue"]) == "Use Radio Settings" else int(config_info_client["g5"]["channel"]["value"]),
