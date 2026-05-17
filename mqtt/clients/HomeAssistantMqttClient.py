@@ -359,7 +359,7 @@ class HomeAssistantMqttClient(MqttPublisherClient):
             self._create_numeric_sensor_payload(device, f"{device_payload_id}_cpu_usage", "CPU Usage", state_topic, Constants.CPU_USAGE,"%"),
             self._create_numeric_sensor_payload(device, f"{device_payload_id}_temperature", "Temperature", state_topic, Constants.TEMPERATURE,"°C"),
             self._create_sensor_payload(device, f"{device_payload_id}_ssid_names", "SSIDs", state_topic, "{{ %s | join(', ') if %s else 'No SSIDs' }}" % (json.dumps(ssid_names), json.dumps(ssid_names)), False, False, True),
-            self._create_sensor_payload(device, f"{device_payload_id}_last_boot", "Last Boot Time", state_topic, "{{ value_json.%s }}" % str(payload[Constants.LAST_BOOT]), None, False, True),
+            self._create_sensor_payload(device, f"{device_payload_id}_last_boot", "Last Boot Time", state_topic, Constants.LAST_BOOT),
             self._create_sensor_payload(device, f"{device_payload_id}_channel_2_4", "Current 2.4GHz Channel", state_topic, Constants.CHANNEL_2_4),
             self._create_sensor_payload(device, f"{device_payload_id}_channel_5", "Current 5GHz Channel", state_topic, Constants.CHANNEL_5),
             self._create_sensor_payload(device, f"{device_payload_id}_channel_6", "Current 6GHz Channel", state_topic, Constants.CHANNEL_6),

@@ -67,7 +67,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                 create_device_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSensor, coordinator, device, Constants.NEW_FIRMWARE, "Available Firmware")
                 create_device_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSensor, coordinator, device, Constants.CPU_USAGE, "CPU Usage", "%")
                 create_device_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSensor, coordinator, device, Constants.TEMPERATURE, "Temperature", "°C", SensorDeviceClass.TEMPERATURE)
-                create_device_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSensor, coordinator, device, Constants.LAST_BOOT, "Up Time", "s", SensorDeviceClass.UPTIME)
+                create_device_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSensor, coordinator, device, Constants.LAST_BOOT, "Up Time", None, SensorDeviceClass.UPTIME)
                 create_device_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSensor, coordinator, device, Constants.CHANNEL_2_4, "Current 2.4GHz Channel")
                 create_device_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSensor, coordinator, device, Constants.CHANNEL_5, "Current 5GHz Channel")
                 create_device_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSensor, coordinator, device, Constants.CHANNEL_6, "Current 6GHz Channel")
