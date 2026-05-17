@@ -39,6 +39,8 @@ jobs:
           cp -R custom_components/grandstream_gwn/. dist/hacs/
           mkdir -p dist/hacs/gwn
           cp -R gwn/. dist/hacs/gwn/
+          find dist/hacs -type d -name "__pycache__" -prune -exec rm -rf {} +
+          find dist/hacs -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete
 
       - name: Rewrite vendored imports
         run: |
@@ -139,7 +141,7 @@ jobs:
         run: |
           cd dist/hacs
           shopt -s dotglob
-          zip -r "../${{ steps.hacs.outputs.filename }}" ./*
+          zip -r "../${{ steps.hacs.outputs.filename }}" ./* -x "*/__pycache__/*" "*.pyc" "*.pyo"
 
       - name: Upload asset to release
         env:
