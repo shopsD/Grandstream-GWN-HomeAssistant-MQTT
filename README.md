@@ -368,7 +368,7 @@ topic:
 Invalid manifests are logged and ignored.
 
 `app.unpublish_initial_data` is a separate fallback cleanup mode. It clears topics for whatever data GWN currently returns but only runs once on startup. It is usually not required if `topic_manifest_path` is used.
-Using `topic_manifest_path` is more suitable because it can also clear topics for objects that were deleted while the bridge was stopped, while `app.unpublish_initial_data` can only unpublish correctly detected topics (Networks, Devices and SSIDs).
+Using `topic_manifest_path` is more suitable because it can also clear topics for objects that were deleted while the bridge was stopped, while `app.unpublish_initial_data` can only unpublish currently detected topics (Networks, Devices and SSIDs).
 
 ### `mqtt.homeassistant` Config
 
