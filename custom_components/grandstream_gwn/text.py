@@ -15,8 +15,8 @@ from .coordinator import GwnDataUpdateCoordinator
 from .sensor import _networks
 from gwn.constants import Constants
 
-def create_entity(current_unique_ids: set[str], cached_unique_ids: set[str], new_entities: list[GwnTextEntity], entity_type: Callable[[GwnDataUpdateCoordinator, dict[str, Any], str, str], GwnTextEntity], coordinator: GwnDataUpdateCoordinator, data: dict[str, Any], key: str, name_suffix: str) -> None:
-    entity: GwnTextEntity = entity_type(coordinator, data, key, name_suffix)
+def create_entity(current_unique_ids: set[str], cached_unique_ids: set[str], new_entities: list[GwnTextEntity], entity_type: Callable[[GwnDataUpdateCoordinator, dict[str, Any], str, str, str | None], GwnTextEntity], coordinator: GwnDataUpdateCoordinator, data: dict[str, Any], key: str, name_suffix: str, default_value: str | None = None) -> None:
+    entity: GwnTextEntity = entity_type(coordinator, data, key, name_suffix, default_value)
     current_unique_ids.add(entity.gwn_unique_id())
     if entity.gwn_unique_id() not in cached_unique_ids:
         new_entities.append(entity) # cache entities to detect later removal
@@ -38,9 +38,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                 for device in network.get(Constants.DEVICES, {}).values():
                     create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceText, coordinator, device, Constants.AP_NAME, "Name")
                 for ssid in network.get(Constants.SSIDS, {}).values():
-                    create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDText, coordinator, ssid, Constants.SSID_VLAN_ID, "VLAN ID")
+                    create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDText, coordinator, ssid, Constants.SSID_VLAN_ID, "VLAN ID", "")
                     create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDText, coordinator, ssid, Constants.SSID_NAME, "SSID")
-                    create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDText, coordinator, ssid, Constants.SSID_KEY, "WiFi Passphrase")
+                    if ssid[Constants.SSID_KEY] is not None:
+                        create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDText, coordinator, ssid, Constants.SSID_KEY, "WiFi Passphrase")
 
         # Remove any device that is not in the cache since it likely means they are have been removed from gwn manager (removed network, device or ssid)
         removed_unique_ids = cached_unique_ids - current_unique_ids
@@ -71,7 +72,9 @@ class GwnTextEntity(CoordinatorEntity[GwnDataUpdateCoordinator], TextEntity):
         return self._attr_unique_id
 
 class GwnNetworkText(GwnTextEntity):
-    def __init__(self, coordinator: GwnDataUpdateCoordinator, network: dict[str, Any], key: str, name_suffix: str) -> None:
+    def __init__(self, coordinator: GwnDataUpdateCoordinator, network: dict[str, Any], key: str, name_suffix: str, default_value: str | None = None) -> None:
+        self._default_value: str | None = default_value
+
         network_id: str = network[Constants.NETWORK_ID]
         name: str = network[Constants.NETWORK_NAME]
         super().__init__(coordinator, network_id, network_id, key, name, name_suffix, "network")
@@ -80,9 +83,9 @@ class GwnNetworkText(GwnTextEntity):
     def native_value(self) -> str | None:
         network: dict[str, Any] | None = self._current_data()
         if network is None:
-            return None
-        value = network.get(self._key)
-        return None if value is None else str(value)
+            return self._default_value
+        value: str | None = network.get(self._key, self._default_value)
+        return self._default_value if value is None else str(value)
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -110,10 +113,11 @@ class GwnNetworkText(GwnTextEntity):
         await self._coordinator.async_set_network_value(self._network_id, self._key, value)
 
 class GwnDeviceText(GwnTextEntity):
-    def __init__(self, coordinator: GwnDataUpdateCoordinator, device: dict[str, Any], key: str, name_suffix: str) -> None:
+    def __init__(self, coordinator: GwnDataUpdateCoordinator, device: dict[str, Any], key: str, name_suffix: str, default_value: str | None = None) -> None:
 
         self._ap_type: str = device[Constants.AP_TYPE]
         self._sw_version: str = device[Constants.CURRENT_FIRMWARE]
+        self._default_value: str | None = default_value
 
         network_id: str = device[Constants.NETWORK_ID]
         device_mac: str = device[Constants.MAC]
@@ -125,8 +129,8 @@ class GwnDeviceText(GwnTextEntity):
         device: dict[str, Any] | None = self._current_data()
         if device is None:
             return None
-        value = device.get(self._key)
-        return None if value is None else str(value)
+        value: str | None = device.get(self._key, self._default_value)
+        return self._default_value if value is None else str(value)
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -171,9 +175,10 @@ class GwnDeviceText(GwnTextEntity):
         await self._coordinator.async_set_device_value(self._root_id, self._network_id, self._key, value)
 
 class GwnSSIDText(GwnTextEntity):
-    def __init__(self, coordinator: GwnDataUpdateCoordinator, ssid: dict[str, Any], key: str, name_suffix: str) -> None:
+    def __init__(self, coordinator: GwnDataUpdateCoordinator, ssid: dict[str, Any], key: str, name_suffix: str, default_value: str | None = None) -> None:
 
         self._model: str = ssid.get(Constants.NETWORK_NAME, "GWN SSID")
+        self._default_value: str | None = default_value
 
         network_id: str = ssid[Constants.NETWORK_ID]
         ssid_id: str = ssid[Constants.SSID_ID]
@@ -184,9 +189,9 @@ class GwnSSIDText(GwnTextEntity):
     def native_value(self) -> str | None:
         ssid: dict[str, Any] | None = self._current_data()
         if ssid is None:
-            return None
-        value = ssid.get(self._key)
-        return None if value is None else str(value)
+            return self._default_value
+        value: str | None = ssid.get(self._key, self._default_value)
+        return self._default_value if value is None else str(value)
 
     @property
     def device_info(self) -> DeviceInfo | None:

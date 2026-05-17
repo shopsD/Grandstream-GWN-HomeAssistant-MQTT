@@ -368,7 +368,7 @@ topic:
 Invalid manifests are logged and ignored.
 
 `app.unpublish_initial_data` is a separate fallback cleanup mode. It clears topics for whatever data GWN currently returns but only runs once on startup. It is usually not required if `topic_manifest_path` is used.
-Using `topic_manifest_path` is more suitable because it can also clear topics for objects that were deleted while the bridge was stopped, while `app.unpublish_initial_data` can only unpublish correctly detected topics (Networks, Devices and SSIDs).
+Using `topic_manifest_path` is more suitable because it can also clear topics for objects that were deleted while the bridge was stopped, while `app.unpublish_initial_data` can only unpublish currently detected topics (Networks, Devices and SSIDs).
 
 ### `mqtt.homeassistant` Config
 
@@ -417,7 +417,7 @@ device_name_override:
 | `page_size` | No | `10` | Page size for paginated GWN API requests. Must be `>= 1`. |
 | `max_pages` | No | `0` | Maximum pages to request. `0` means unlimited. Must be `>= 0`. |
 | `refresh_period_s` | No | `30` | Poll interval in seconds. Must be `>= 0`. |
-| `exclude_passphrase` | No | `[]` | SSID IDs whose passphrase should not be published. |
+| `exclude_passphrase` | No | `[]` | SSID IDs whose passphrase should not be exposed. The library will set the value to `None` for any SSIDs that match the list. |
 | `exclude_ssid` | No | `[]` | SSID IDs to exclude entirely. |
 | `exclude_device` | No | `[]` | Device MAC addresses to exclude entirely. |
 | `exclude_network` | No | `[]` | Network IDs to exclude entirely. |
@@ -546,10 +546,10 @@ These examples below are the shape of what the application publishes over MQTT
   "mac": "AA:BB:CC:DD:EE:FF",
   "name": "Lobby AP",
   "ip": "192.168.1.10",
-  "upTime": 123456,
-  "usage": "1.2 GB",
-  "upload": "100 MB",
-  "download": "1.1 GB",
+  "lastBoot": "2026-05-17 15:42:08.123456",
+  "usage": 6695047434,
+  "upload": 343241087,
+  "download": 6351806347,
   "clients": 12,
   "versionFirmware": "1.0.0",
   "ipv6": "",
@@ -566,12 +566,12 @@ These examples below are the shape of what the application publishes over MQTT
   "partNumber": "",
   "bootVersion": "",
   "network": "Office",
-  "temperature": "42C",
-  "usedMemory": "50%",
-  "channelload_2g4": "10%",
-  "channelload_5g": "20%",
-  "channelload_6g": "",
-  "cpuUsage": "5%",
+  "temperature": 42,
+  "usedMemory": 20000000,
+  "channelload_2g4": 10,
+  "channelload_5g": 20,
+  "channelload_6g": 0,
+  "cpuUsage": 5,
   "ap_2g4_channel": 0,
   "ap_5g_channel": 36,
   "ap_6g_channel": 0,
@@ -595,7 +595,10 @@ These examples below are the shape of what the application publishes over MQTT
 }
 ```
 
-`channel_2_4`, `channel_5`, and `channel_6` are the channels currently in use. `ap_2g4_channel`, `ap_5g_channel`, and `ap_6g_channel` are the configured channel settings. A configured value of `0` means `Use Radio Settings`.
+- `channel_2_4`, `channel_5`, and `channel_6` are the channels currently in use. `ap_2g4_channel`, `ap_5g_channel`, and `ap_6g_channel` are the configured channel settings. A configured value of `0` means `Use Radio Settings`.
+- `channelload_2g4`,`channelload_5g`, `channelload_6g`, and `cpuUsage` are in percent
+- `temperature` is in degrees Celsius
+- `usage`,`upload`, `download`, and `usedMemory` are in bytes
 
 ### SSID State
 
@@ -628,7 +631,7 @@ These examples below are the shape of what the application publishes over MQTT
 }
 ```
 
-If `exclude_passphrase` includes the SSID ID, `ssidKey` is not published.
+If `exclude_passphrase` includes the SSID ID, `ssidKey` is not published
 
 ## MQTT Command Payloads
 Below are examples of what the commands from MQTT should look like

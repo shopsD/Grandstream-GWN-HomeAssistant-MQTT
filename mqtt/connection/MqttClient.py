@@ -156,7 +156,7 @@ class MqttClient:
         await self._do_publish(f"{self._interface.topic}/{Constants.APPLICATION}/{Constants.STATUS}", None if clear else {"status": "online", "cause": "startup"})
 
     async def _publish_application_payload(self, application_payload: dict[str,object], clear: bool, clear_autodiscovery: bool) -> None:
-        application_topic = f"{self._interface.topic}/{Constants.APPLICATION}"
+        application_topic: str = f"{self._interface.topic}/{Constants.APPLICATION}"
         state_topic: str = f"{application_topic}/{Constants.STATE}"
         await self._do_publish(state_topic, None if clear else application_payload)
         if clear and not clear_autodiscovery:
@@ -202,9 +202,9 @@ class MqttClient:
 
     async def _publish_device_payload(self, device_payload: dict[str, object], network_names: dict[int,str], clear: bool, is_readonly: bool, clear_autodiscovery: bool) -> None:
         network_id: str = str(device_payload.get(Constants.NETWORK_ID))
-        device_mac = str(device_payload.get(Constants.MAC))
+        device_mac: str = str(device_payload.get(Constants.MAC))
         device_mac = MqttPublisherClient.strip_mac(device_mac)
-        device_topic = self._get_device_topic(network_id,device_mac)
+        device_topic: str = self._get_device_topic(network_id,device_mac)
 
         state_topic: str = f"{device_topic}/{Constants.STATE}"
         exception_occurred: bool = False
@@ -231,7 +231,7 @@ class MqttClient:
     async def _publish_ssid_payload(self, ssid_payload: dict[str, object], devices: dict[str, str], clear: bool, is_readonly: bool, clear_autodiscovery: bool) -> None:
         network_id: str = str(ssid_payload.get(Constants.NETWORK_ID))
         ssid_id: str = str(ssid_payload.get(Constants.SSID_ID))
-        ssid_topic = self._get_ssid_topic(network_id,ssid_id)
+        ssid_topic: str = self._get_ssid_topic(network_id,ssid_id)
 
         state_topic: str = f"{ssid_topic}/{Constants.STATE}"
         await self._do_publish(state_topic, None if clear else ssid_payload)

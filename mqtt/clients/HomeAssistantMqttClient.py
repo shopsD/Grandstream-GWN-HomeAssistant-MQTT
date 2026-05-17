@@ -238,7 +238,7 @@ class HomeAssistantMqttClient(MqttPublisherClient):
                 raw_device_mac_list.append(data_device_mac)
             local_device_data[data_device_mac] = data_device_name
 
-        hide_ssid_passphrase: bool = payload[Constants.SSID_KEY] is None # it is None if the config has it excluded or it is set to Open (if Open, dont allow setting SSID Key here either)
+        hide_ssid_passphrase: bool = payload[Constants.SSID_KEY] is None # it is None if the config has it excluded if it is Open then it will be an empty string
 
         for raw_device_mac, device_name in local_device_data.items():
             # see if the device has a custom name assigned in GWN Manager
@@ -277,7 +277,7 @@ class HomeAssistantMqttClient(MqttPublisherClient):
             (self._create_binary_sensor_payload(device, f"{ssid_payload_id}_enabled_5", "5GHz Station", state_topic, Constants.GHZ5_ENABLED) if is_readonly else self._create_switch_payload(device, f"{ssid_payload_id}_enabled_5", "5GHz Station", state_topic, command_topic, Constants.GHZ5_ENABLED)),
             (self._create_binary_sensor_payload(device, f"{ssid_payload_id}_enabled_6", "6GHz Station", state_topic, Constants.GHZ6_ENABLED) if is_readonly else self._create_switch_payload(device, f"{ssid_payload_id}_enabled_6", "6GHz Station", state_topic, command_topic, Constants.GHZ6_ENABLED)),
             (self._create_binary_sensor_payload(device, f"{ssid_payload_id}_hidden", "Hide WiFi", state_topic, Constants.SSID_HIDDEN) if is_readonly else self._create_switch_payload(device, f"{ssid_payload_id}_hidden", "Hide WiFi", state_topic, command_topic, Constants.SSID_HIDDEN)),
-            (self._create_binary_sensor_payload(device, f"{ssid_payload_id}_vlan", "VLAN ID", state_topic, Constants.SSID_VLAN_ID) if is_readonly else self._create_number_payload(device, f"{ssid_payload_id}_vlan", "VLAN ID", state_topic, command_topic, Constants.SSID_VLAN_ID, 0, 4094, "{{ value_json.%s if value_json.get('%s') else null }}" % (Constants.SSID_VLAN_ID, Constants.SSID_VLAN_ENABLED))),
+            (self._create_binary_sensor_payload(device, f"{ssid_payload_id}_vlan", "VLAN ID", state_topic, Constants.SSID_VLAN_ID) if is_readonly else self._create_number_payload(device, f"{ssid_payload_id}_vlan", "VLAN ID", state_topic, command_topic, Constants.SSID_VLAN_ID, 0, 4094, "{{ value_json.%s if value_json.get('%s') else none }}" % (Constants.SSID_VLAN_ID, Constants.SSID_VLAN_ENABLED))),
             (self._create_sensor_payload(device, f"{ssid_payload_id}_passphrase", "WiFi Passphrase", state_topic, Constants.SSID_KEY) if is_readonly or hide_ssid_passphrase else self._create_text_payload(device, f"{ssid_payload_id}_passphrase", "WiFi Passphrase", state_topic, command_topic, Constants.SSID_KEY)),
             (self._create_sensor_payload(device, f"{ssid_payload_id}_ssid_name", "SSID", state_topic, Constants.SSID_NAME) if is_readonly else self._create_text_payload(device, f"{ssid_payload_id}_ssid_name", "SSID", state_topic, command_topic, Constants.SSID_NAME)),
             self._create_numeric_sensor_payload(device, f"{ssid_payload_id}_client_count", "Clients Online", state_topic, Constants.CLIENT_COUNT),
@@ -354,12 +354,12 @@ class HomeAssistantMqttClient(MqttPublisherClient):
             self._create_binary_sensor_payload(device, f"{device_payload_id}_status", "Status", state_topic, Constants.STATUS),
             self._create_sensor_payload(device, f"{device_payload_id}_ipv4", "IPv4", state_topic, Constants.IPV4),
             self._create_sensor_payload(device, f"{device_payload_id}_ipv6", "IPv6", state_topic, Constants.IPV6),
-            self._create_sensor_payload(device, f"{device_payload_id}_firmware", "Current Firmware", state_topic, Constants.CURRENT_FIRMWARE, True, True),
-            self._create_sensor_payload(device, f"{device_payload_id}_firmware_new", "Available Firmware", state_topic, Constants.NEW_FIRMWARE, True, True),
-            self._create_numeric_sensor_payload(device, f"{device_payload_id}_cpu_usage", "CPU Usage", state_topic, "{{ value_json.%s | replace('%%', '') | int(0) }}" % Constants.CPU_USAGE,"%",None,False,True),
-            self._create_numeric_sensor_payload(device, f"{device_payload_id}_temperature", "Temperature", state_topic, "{{ value_json.%s | replace('℃', '') | replace('°C', '') | int(0) }}" % Constants.TEMPERATURE,"°C",None,False,True),
+            self._create_sensor_payload(device, f"{device_payload_id}_firmware", "Current Firmware", state_topic, Constants.CURRENT_FIRMWARE, True, False),
+            self._create_sensor_payload(device, f"{device_payload_id}_firmware_new", "Available Firmware", state_topic, Constants.NEW_FIRMWARE, True, False),
+            self._create_numeric_sensor_payload(device, f"{device_payload_id}_cpu_usage", "CPU Usage", state_topic, Constants.CPU_USAGE,"%"),
+            self._create_numeric_sensor_payload(device, f"{device_payload_id}_temperature", "Temperature", state_topic, Constants.TEMPERATURE,"°C"),
             self._create_sensor_payload(device, f"{device_payload_id}_ssid_names", "SSIDs", state_topic, "{{ %s | join(', ') if %s else 'No SSIDs' }}" % (json.dumps(ssid_names), json.dumps(ssid_names)), False, False, True),
-            self._create_numeric_sensor_payload(device, f"{device_payload_id}_uptime", "Up Time", state_topic, Constants.UP_TIME,"s"),
+            self._create_sensor_payload(device, f"{device_payload_id}_last_boot", "Last Boot Time", state_topic, Constants.LAST_BOOT),
             self._create_sensor_payload(device, f"{device_payload_id}_channel_2_4", "Current 2.4GHz Channel", state_topic, Constants.CHANNEL_2_4),
             self._create_sensor_payload(device, f"{device_payload_id}_channel_5", "Current 5GHz Channel", state_topic, Constants.CHANNEL_5),
             self._create_sensor_payload(device, f"{device_payload_id}_channel_6", "Current 6GHz Channel", state_topic, Constants.CHANNEL_6),

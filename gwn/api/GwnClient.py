@@ -1,4 +1,6 @@
+import datetime as dt
 import logging
+import re
 from enum import Enum
 from typing import Any, TypeVar
 
@@ -33,6 +35,7 @@ class GwnClient:
     def __init__(self, config: GwnConfig) -> None:
         self._config = config
         self._interface = GwnInterface(config)
+        self._byte_size_regex: re.Pattern[str] = re.compile(r"\s*([0-9]+(?:\.[0-9]+)?)\s*([A-Za-z]+)\s*")
 
     def _normalise_dictionary_data(self, dictionary_data: list[dict[str, Any]] | None) -> dict[str, Any]:
         normalised:dict[str, Any] = {}
@@ -72,6 +75,29 @@ class GwnClient:
             _LOGGER.warning("Unable to parse %s=%r as %s", key, value, enum_type.__name__)
             return None
 
+    def _size_to_bytes(self, value: str) -> int:
+        units: dict[str, int] = {
+            "B": 1,
+            "KB": 1024,
+            "MB": 1024 ** 2,
+            "GB": 1024 ** 3,
+            "TB": 1024 ** 4
+        }
+
+        match: re.Match[str] | None = self._byte_size_regex.fullmatch(value)
+        if not match:
+            raise ValueError(f"Invalid data size string: {value!r}")
+
+        number: str
+        unit: str
+        number, unit = match.groups()
+        unit = unit.upper()
+
+        if unit not in units:
+            raise ValueError(f"Unsupported unit: {unit!r}. Supported units: {units.keys()}")
+
+        return int(float(number) * units[unit])
+
     def _build_device_data(self, device_info: list[list[dict[str, Any]]]) -> dict[str, GwnDevice]:
         device_list: dict[str, GwnDevice] = {}
         _LOGGER.info(f"Processing {len(device_info)} Devices")
@@ -99,10 +125,10 @@ class GwnClient:
                         mac=mac,
                         name=basic_info["name"],
                         ip=basic_info["ipv4"] if basic_info["ipv4"] is not None else basic_info["ip"],
-                        upTime=basic_info["upTime"],
-                        usage=int(basic_info["usage"]),
-                        upload=int(basic_info["upload"]),
-                        download=int(basic_info["download"]),
+                        last_boot= dt.datetime.now(dt.UTC) - dt.timedelta(seconds=int(basic_info["upTime"].replace("s","").strip())),
+                        usage_bytes=int(basic_info["usage"]),
+                        upload_bytes=int(basic_info["upload"]),
+                        download_bytes=int(basic_info["download"]),
                         clients=int(basic_info["clients"]),
                         versionFirmware=basic_info["versionFirmware"],
                         networkId=basic_info["networkId"],
@@ -123,12 +149,12 @@ class GwnClient:
                         partNumber=config_info_client["partNumber"],
                         bootVersion=config_info_client["bootVersion"],
                         network=config_info_client["network"],
-                        temperature=config_info_client["temperature"],
-                        usedMemory=config_info_client["usedMemory"],
-                        channelload_2g4=config_info_client["channelload_2g4"],
-                        cpuUsage=config_info_client["cpuUsage"],
-                        channelload_6g=config_info_client["channelload_6g"],
-                        channelload_5g=config_info_client["channelload_5g"],
+                        temperature_c=int(config_info_client["temperature"].replace("℃", "").replace("°C", "").strip()),
+                        usedMemory_bytes=self._size_to_bytes(config_info_client["usedMemory"]),
+                        channelload_2g4_percent=int(config_info_client["channelload_2g4"]) if config_info_client["channelload_2g4"] is not None else 0,
+                        cpuUsage_percent=int(config_info_client["cpuUsage"].replace("%","").strip()) if config_info_client["cpuUsage"] is not None else 0,
+                        channelload_6g_percent=int(config_info_client["channelload_6g"]) if config_info_client["channelload_6g"] is not None else 0,
+                        channelload_5g_percent=int(config_info_client["channelload_5g"]) if config_info_client["channelload_5g"] is not None else 0,
 
                         ap_2g4_channel= 0 if str(device_info_channel["ap_2g4_channel"]["defaultValue"]) == "Use Radio Settings" else int(config_info_client["g24"]["channel"]["value"]),
                         ap_5g_channel= 0 if str(device_info_channel["ap_5g_channel"]["defaultValue"]) == "Use Radio Settings" else int(config_info_client["g5"]["channel"]["value"]),
@@ -182,7 +208,7 @@ class GwnClient:
                         ssidKey=(None if int(id) in self._config.exclude_passphrase
                             else str(config_info["ssidWpaKey"]) if config_info["ssidWpaKey"] is not None
                             else str(config_info["ssidWepKey"]) if config_info["ssidWepKey"] is not None
-                            else None),
+                            else ""), # open sets it to None so use an empty string for Open
                         ghz2_4_Enabled=config_info["ssidNewSsidBand"] is not None and "2" in str(config_info["ssidNewSsidBand"]),
                         ghz5_Enabled=config_info["ssidNewSsidBand"] is not None and "5" in str(config_info["ssidNewSsidBand"]),
                         ghz6_Enabled=config_info["ssidNewSsidBand"] is not None and "6" in str(config_info["ssidNewSsidBand"]),

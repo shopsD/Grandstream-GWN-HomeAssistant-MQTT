@@ -1,3 +1,4 @@
+import datetime as dt
 from dataclasses import dataclass
 
 @dataclass(slots=True)
@@ -7,10 +8,10 @@ class GwnDevice:
     mac: str
     name: str
     ip: str
-    upTime: str
-    usage: int
-    upload: int
-    download: int
+    last_boot: dt.datetime
+    usage_bytes: int
+    upload_bytes: int
+    download_bytes: int
     clients: int
     versionFirmware: str 
     networkId: str
@@ -34,12 +35,12 @@ class GwnDevice:
     partNumber: str
     bootVersion: str
     network: str
-    temperature: str
-    usedMemory: str
-    channelload_2g4: str
-    channelload_6g: str
-    cpuUsage: str
-    channelload_5g: str
+    temperature_c: int
+    usedMemory_bytes: int
+    channelload_2g4_percent: int
+    channelload_6g_percent: int
+    cpuUsage_percent: int
+    channelload_5g_percent: int
 
     # channel info
     ap_2g4_channel: int
