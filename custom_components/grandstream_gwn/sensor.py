@@ -83,8 +83,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                     create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDSensor, coordinator, ssid, Constants.GHZ6_ENABLED, "6GHz Station")
                     create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDSensor, coordinator, ssid, Constants.SSID_HIDDEN, "Hide WiFi")
                     create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDSensor, coordinator, ssid, Constants.SSID_VLAN_ID, "VLAN ID")
-                    create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDSensor, coordinator, ssid, Constants.SSID_KEY, "WiFi Passphrase")
                     create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDSensor, coordinator, ssid, Constants.SSID_NAME, "SSID")
+                    if ssid[Constants.SSID_KEY] is not None:
+                        create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDSensor, coordinator, ssid, Constants.SSID_KEY, "WiFi Passphrase")
                 create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDSensor, coordinator, ssid, Constants.CLIENT_COUNT, "Clients Online")
                 create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDSensor, coordinator, ssid, Constants.NETWORK_NAME, "Network")
 

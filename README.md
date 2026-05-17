@@ -417,7 +417,7 @@ device_name_override:
 | `page_size` | No | `10` | Page size for paginated GWN API requests. Must be `>= 1`. |
 | `max_pages` | No | `0` | Maximum pages to request. `0` means unlimited. Must be `>= 0`. |
 | `refresh_period_s` | No | `30` | Poll interval in seconds. Must be `>= 0`. |
-| `exclude_passphrase` | No | `[]` | SSID IDs whose passphrase should not be published. |
+| `exclude_passphrase` | No | `[]` | SSID IDs whose passphrase should not be exposed. The library will set the value to `None` for any SSIDs that match the list. |
 | `exclude_ssid` | No | `[]` | SSID IDs to exclude entirely. |
 | `exclude_device` | No | `[]` | Device MAC addresses to exclude entirely. |
 | `exclude_network` | No | `[]` | Network IDs to exclude entirely. |
@@ -631,7 +631,7 @@ These examples below are the shape of what the application publishes over MQTT
 }
 ```
 
-If `exclude_passphrase` includes the SSID ID, `ssidKey` is not published.
+If `exclude_passphrase` includes the SSID ID, `ssidKey` is not published
 
 ## MQTT Command Payloads
 Below are examples of what the commands from MQTT should look like

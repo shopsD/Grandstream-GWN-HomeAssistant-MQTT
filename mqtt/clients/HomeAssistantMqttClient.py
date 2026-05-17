@@ -238,7 +238,7 @@ class HomeAssistantMqttClient(MqttPublisherClient):
                 raw_device_mac_list.append(data_device_mac)
             local_device_data[data_device_mac] = data_device_name
 
-        hide_ssid_passphrase: bool = payload[Constants.SSID_KEY] is None # it is None if the config has it excluded or it is set to Open (if Open, dont allow setting SSID Key here either)
+        hide_ssid_passphrase: bool = payload[Constants.SSID_KEY] is None # it is None if the config has it excluded if it is Open then it will be an empty string
 
         for raw_device_mac, device_name in local_device_data.items():
             # see if the device has a custom name assigned in GWN Manager

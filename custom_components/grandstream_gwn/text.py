@@ -40,7 +40,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                 for ssid in network.get(Constants.SSIDS, {}).values():
                     create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDText, coordinator, ssid, Constants.SSID_VLAN_ID, "VLAN ID")
                     create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDText, coordinator, ssid, Constants.SSID_NAME, "SSID")
-                    create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDText, coordinator, ssid, Constants.SSID_KEY, "WiFi Passphrase")
+                    if ssid[Constants.SSID_KEY] is not None:
+                        create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDText, coordinator, ssid, Constants.SSID_KEY, "WiFi Passphrase")
 
         # Remove any device that is not in the cache since it likely means they are have been removed from gwn manager (removed network, device or ssid)
         removed_unique_ids = cached_unique_ids - current_unique_ids

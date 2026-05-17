@@ -208,7 +208,7 @@ class GwnClient:
                         ssidKey=(None if int(id) in self._config.exclude_passphrase
                             else str(config_info["ssidWpaKey"]) if config_info["ssidWpaKey"] is not None
                             else str(config_info["ssidWepKey"]) if config_info["ssidWepKey"] is not None
-                            else None),
+                            else ""), # open sets it to None so use an empty string for Open
                         ghz2_4_Enabled=config_info["ssidNewSsidBand"] is not None and "2" in str(config_info["ssidNewSsidBand"]),
                         ghz5_Enabled=config_info["ssidNewSsidBand"] is not None and "5" in str(config_info["ssidNewSsidBand"]),
                         ghz6_Enabled=config_info["ssidNewSsidBand"] is not None and "6" in str(config_info["ssidNewSsidBand"]),
