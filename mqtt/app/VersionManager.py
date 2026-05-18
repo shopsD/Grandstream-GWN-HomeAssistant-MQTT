@@ -110,3 +110,4 @@ class VersionManager:
     async def close(self) -> None:
         if self._session is not None and not self._session.closed:
             await self._session.close()
+            self._session = None
