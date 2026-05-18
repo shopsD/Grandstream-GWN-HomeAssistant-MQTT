@@ -168,7 +168,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                    return FlowData(gwn_config=gwn_config, gwn_client=gwn_client, data=data, authenticated=True)
                 await gwn_client.close()
                 errors["base"] = "user_pass_authentication_failed" if gwn_client.api_authenticated else "api_authentication_failed"
-            return FlowData(data=data, errors=errors)
+            return FlowData(gwn_config=gwn_config, data=data, errors=errors)
         return FlowData()
 
     @staticmethod
