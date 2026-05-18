@@ -236,4 +236,6 @@ class OptionsFlowHandler(OptionsFlow):
                 return self.async_create_entry(title="", data={})
 
             return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(current_config), errors=flow_data.errors)
-        return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(current_config), errors={})
+        failed_config: GwnConfig = current_config if flow_data.gwn_config is None else flow_data.gwn_config
+        failed_config.password = "" # the password has been hashed so dont show it again
+        return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(failed_config), errors={})
