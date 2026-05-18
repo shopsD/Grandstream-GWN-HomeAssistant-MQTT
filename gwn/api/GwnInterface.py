@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(Constants.LOG)
 class GwnInterface:
     def __init__(self, config: GwnConfig) -> None:
         self._config: GwnConfig = config
-        self._session: aiohttp.ClientSession = aiohttp.ClientSession()
+        self._session: aiohttp.ClientSession | None = None
         self._token: GwnToken | None = None
         self._timeout = aiohttp.ClientTimeout(total=15)
 
@@ -23,8 +23,7 @@ class GwnInterface:
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback) -> None:
-        if not self._session.closed:
-            await self._session.close()
+        await self.close()
 
     def _build_signature(self, body: str, access_token: str, timestamp_ms: int) -> str:
         """
@@ -40,7 +39,7 @@ class GwnInterface:
         final = f"&{params}&{body_hash}&"
         return hashlib.sha256(final.encode("utf-8")).hexdigest()
 
-    async def _ensure_token_valid(self) -> None:
+    async def _ensure_token_valid(self) -> None:            
         if self._token is None or self._token.is_expired():
             self._token = await self._headless_login()
         if self._token is not None and self.user_password_login:
@@ -54,6 +53,10 @@ class GwnInterface:
             if self._token.authorisation_key is None:
                 self._token.authorisation_key = await self._user_password_login()
 
+    def _established_session(self) -> aiohttp.ClientSession:
+        if self._session is None:
+            self._session = aiohttp.ClientSession()
+        return self._session
 
     async def _post(self, path: str, body: dict[str, Any], bearer: bool = False) -> dict[str, Any] | None:
         
@@ -88,7 +91,7 @@ class GwnInterface:
 
     async def _do_post(self, path: str, params: dict[str, str], body: str, headers: dict[str,str], do_log: bool = True) -> dict[str,Any] | None:
         url = f"{self._config.base_url.rstrip('/')}/{path.lstrip('/')}"
-        async with self._session.post(url, params=params, data=body,headers=headers, timeout=self._timeout) as response:
+        async with self._established_session().post(url, params=params, data=body,headers=headers, timeout=self._timeout) as response:
             data = await response.json(content_type=None)
 
             if response.status != 200:
@@ -156,7 +159,7 @@ class GwnInterface:
             params["username"] = self._config.username
             params["password"] = self._config.password
 
-        async with self._session.get(url, params=params) as response:
+        async with self._established_session().get(url, params=params) as response:
             data = await response.json(content_type=None)
 
             if response.status != 200:
@@ -199,7 +202,8 @@ class GwnInterface:
         return self._config.username is not None and self._config.password is not None
 
     async def close(self) -> None:
-        await self._session.close()
+        if self._session is not None and not self._session.closed:
+            await self._session.close()
 
     async def authenticate(self) -> bool:
         await self._ensure_token_valid()

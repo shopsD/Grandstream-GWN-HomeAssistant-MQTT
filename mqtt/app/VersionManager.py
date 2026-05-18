@@ -25,19 +25,24 @@ class VersionManager:
     def __init__(self, config: AppConfig) -> None:
         self._config: AppConfig = config
         self._update_url: str = "https://api.github.com/repos/shopsD/homeassistant-grandstream-gwn/releases"
-        self._session: aiohttp.ClientSession = aiohttp.ClientSession()
+        self._session: aiohttp.ClientSession | None = None 
         self._timeout = aiohttp.ClientTimeout(total=15)
         self._is_container: bool = os.getenv("GWN_MQTT_CONTAINER", "").lower() == "true"
         self._pre_release_list: set[str] = set(["alpha","beta","pre-release","release-candidate","a","b","pr","rc"])
         self._latest_version: str = Constants.APP_VERSION
         self._version_lock: asyncio.Lock = asyncio.Lock()
 
+    def _established_session(self) -> aiohttp.ClientSession:
+        if self._session is None:
+            self._session = aiohttp.ClientSession()
+        return self._session
+
     async def _fetch_release_data(self, url: str) -> list[dict[str, Any]]:
         headers: dict[str, str] = {
             "Accept": "application/vnd.github+json, application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json",
             "User-Agent": f"gwn-mqtt/{Constants.APP_VERSION}"
         }
-        async with self._session.get(url, headers=headers, timeout=self._timeout) as response:
+        async with self._established_session().get(url, headers=headers, timeout=self._timeout) as response:
             if response.status != 200:
                 _LOGGER.warning(f"Failed to get update version {response.status}")
                 return []
@@ -103,4 +108,5 @@ class VersionManager:
             return self._latest_version
 
     async def close(self) -> None:
-        await self._session.close()
+        if self._session is not None and not self._session.closed:
+            await self._session.close()
