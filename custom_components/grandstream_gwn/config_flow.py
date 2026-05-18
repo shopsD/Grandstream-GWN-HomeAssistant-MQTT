@@ -56,7 +56,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return list_string is not None and (list_string == "" or bool(MAC_MATCHER.match(list_string)))
 
     @staticmethod
-    async def build_and_validate_config(flow_id: str, user_input: dict[str, Any] | None = None, previous_password: str | None = None) -> FlowData:
+    async def build_and_validate_config(flow_id: str, user_input: dict[str, Any] | None = None, previous_username: str | None = None, previous_password: str | None = None) -> FlowData:
         errors: dict[str, str] = {}
         if user_input is not None:
             gwn_config: GwnConfig = GwnConfig(
@@ -98,16 +98,22 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             has_username: bool = username not in (None, "")
             has_password: bool = password not in (None, "")
             has_previous_password: bool = previous_password not in (None, "")
-            if has_previous_password and has_username and not has_password:
+            
+            hash_password: bool = True
+            # if the username has changed, then validate as if its new otherwise
+            # if there the password has not changed then use the old one and the old username
+            if has_username and not has_password and has_previous_password and previous_username == username:
                 has_password = True
+                hash_password = False
                 password = previous_password
+            
             if has_username and not has_password:
                 errors[PASSWORD_CONFIG_KEY] = "required_with_username"
             elif has_password and not has_username:
                 errors[USERNAME_CONFIG_KEY] = "required_with_password"
             elif has_password and has_username:
                 gwn_config.username = str(username)
-                gwn_config.password = password if has_previous_password else GwnConfig.hash_password(str(password))
+                gwn_config.password = GwnConfig.hash_password(str(password)) if hash_password else password
                 data[USERNAME_CONFIG_KEY] = gwn_config.username
                 data[PASSWORD_CONFIG_KEY] = gwn_config.password
 
@@ -229,7 +235,7 @@ class OptionsFlowHandler(OptionsFlow):
         previous_password: str| None = current_config.password
         current_config.password = ""
         if user_input is not None:
-            flow_data: FlowData = await ConfigFlow.build_and_validate_config(flow_id, user_input, previous_password)
+            flow_data: FlowData = await ConfigFlow.build_and_validate_config(flow_id, user_input, current_config.username, previous_password)
 
             if flow_data.authenticated:
                 self.hass.data.setdefault(DOMAIN, {})
