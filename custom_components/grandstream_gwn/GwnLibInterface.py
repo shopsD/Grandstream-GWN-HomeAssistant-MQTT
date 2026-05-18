@@ -28,7 +28,7 @@ class GwnLibInterface:
             gwn_config.username = str(username)
         password = data.get("password")
         if password not in (None, ""):
-            gwn_config.password = GwnConfig.hash_password(str(password))
+            gwn_config.password = str(password)
         base_url = data.get("base_url")
         if base_url is not None:
             gwn_config.base_url = str(base_url)

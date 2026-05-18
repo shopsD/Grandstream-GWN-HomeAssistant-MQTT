@@ -12,17 +12,17 @@ from gwn.authentication import GwnConfig
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
-    pending_clients: dict[str, dict[str, object]] = hass.data[DOMAIN].setdefault("pending_clients", {})
+    gwn_client_config: dict[str, dict[str, object]] = hass.data[DOMAIN].setdefault("gwn_client_config", {})
     
     flow_id: str | None = entry.data.get("flow_id")
-    pending: dict[str, Any] | None = None if flow_id is None else pending_clients.pop(flow_id, None)
+    client_config: dict[str, Any] | None = None if flow_id is None else gwn_client_config.pop(flow_id, None)
 
     gwn_config: GwnConfig
     gwn_client: GwnClient
 
-    if pending is not None:
-        gwn_config = pending["config"]
-        gwn_client = pending["client"]
+    if client_config is not None:
+        gwn_config = client_config["config"]
+        gwn_client = client_config["client"]
     else:
         gwn_config = GwnLibInterface.build_gwn_config(entry)
         gwn_client = GwnClient(gwn_config)

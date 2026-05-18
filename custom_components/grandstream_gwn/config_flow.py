@@ -130,11 +130,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if await gwn_client.authenticate():
                     self.hass.data.setdefault(DOMAIN, {})
                     self.hass.data[DOMAIN].setdefault("gwn_client_config", {})
-                    self.hass.data[DOMAIN]["gwn_client_config"]["client"] = gwn_client
-                    self.hass.data[DOMAIN]["gwn_client_config"]["config"] = gwn_config
+                    self.hass.data[DOMAIN]["gwn_client_config"][self.flow_id] = {"client": gwn_client, "config": gwn_config}
                     return self.async_create_entry(title=gwn_config.base_url, data=data)
                 await gwn_client.close()
-                errors["authentication"] = "user_pass_authentication_failed" if gwn_client.api_authenticated else "api_authentication_failed"
+                errors["base"] = "user_pass_authentication_failed" if gwn_client.api_authenticated else "api_authentication_failed"
 
 
         defaults: GwnConfig = GwnConfig("dummy", "dummy") # dummy to initialise the defaults

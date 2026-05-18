@@ -39,7 +39,7 @@ class GwnInterface:
         final = f"&{params}&{body_hash}&"
         return hashlib.sha256(final.encode("utf-8")).hexdigest()
 
-    async def _ensure_token_valid(self) -> None:            
+    async def _ensure_token_valid(self) -> None:
         if self._token is None or self._token.is_expired():
             self._token = await self._headless_login()
         if self._token is not None and self.user_password_login:
