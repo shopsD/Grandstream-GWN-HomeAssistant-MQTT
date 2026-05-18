@@ -5,7 +5,29 @@ from typing import Any
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 
-from .const import DOMAIN, CLIENT_CONFIG_KEY, CLIENT_KEY, CONFIG_KEY, FLOW_ID_KEY
+from .const import (
+    APP_ID_CONFIG_KEY,
+    BASE_URL_CONFIG_KEY,
+    CLIENT_CONFIG_KEY,
+    CLIENT_KEY,
+    CONFIG_KEY,
+    DOMAIN,
+    EXCLUDE_DEVICE_CONFIG_KEY,
+    EXCLUDE_NETWORK_CONFIG_KEY,
+    EXCLUDE_PASSPHRASE_CONFIG_KEY,
+    EXCLUDE_SSID_CONFIG_KEY,
+    FLOW_ID_KEY,
+    IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY,
+    MAX_PAGES_CONFIG_KEY,
+    NO_PUBLISH_CONFIG_KEY,
+    PAGE_SIZE_CONFIG_KEY,
+    PASSWORD_CONFIG_KEY,
+    REFRESH_PERIOD_S_CONFIG_KEY,
+    RESTRICTED_API_CONFIG_KEY,
+    SECRET_KEY_CONFIG_KEY,
+    SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY,
+    USERNAME_CONFIG_KEY
+)
 from .gwn_lib_interface import GwnLibInterface
 from gwn.api import GwnClient
 from gwn.authentication import GwnConfig
@@ -24,106 +46,109 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
-            gwn_config: GwnConfig = GwnConfig(app_id=str(user_input["app_id"]), secret_key=str(user_input["secret_key"]))
+            gwn_config: GwnConfig = GwnConfig(
+                app_id=str(user_input[APP_ID_CONFIG_KEY]),
+                secret_key=str(user_input[SECRET_KEY_CONFIG_KEY])
+            )
             data: dict[str, Any] = {
-                "app_id": gwn_config.app_id,
-                "secret_key": gwn_config.secret_key,
+                APP_ID_CONFIG_KEY: gwn_config.app_id,
+                SECRET_KEY_CONFIG_KEY: gwn_config.secret_key,
                 FLOW_ID_KEY: self.flow_id
             }
 
-            page_size = user_input.get("page_size")
+            page_size = user_input.get(PAGE_SIZE_CONFIG_KEY)
             if page_size is not None:
                 if int(page_size) < 1:
-                    errors["page_size"] = "required_ge_1"
+                    errors[PAGE_SIZE_CONFIG_KEY] = "required_ge_1"
                 else:
                     gwn_config.page_size = int(page_size)
-                    data["page_size"] = gwn_config.page_size
+                    data[PAGE_SIZE_CONFIG_KEY] = gwn_config.page_size
 
-            max_pages = user_input.get("max_pages")
+            max_pages = user_input.get(MAX_PAGES_CONFIG_KEY)
             if max_pages is not None:
                 if int(max_pages) < 0:
-                    errors["max_pages"] = "required_ge_0"
+                    errors[MAX_PAGES_CONFIG_KEY] = "required_ge_0"
                 else:
                     gwn_config.max_pages = int(max_pages)
-                    data["max_pages"] = gwn_config.max_pages
-            refresh_period_s = user_input.get("refresh_period_s")
+                    data[MAX_PAGES_CONFIG_KEY] = gwn_config.max_pages
+            refresh_period_s = user_input.get(REFRESH_PERIOD_S_CONFIG_KEY)
             if refresh_period_s is not None:
                 if int(refresh_period_s) < 0:
-                    errors["refresh_period_s"] = "required_ge_0"
+                    errors[REFRESH_PERIOD_S_CONFIG_KEY] = "required_ge_0"
                 else:
                     gwn_config.refresh_period_s = int(refresh_period_s)
-                    data["refresh_period_s"] = gwn_config.refresh_period_s
+                    data[REFRESH_PERIOD_S_CONFIG_KEY] = gwn_config.refresh_period_s
 
-            username = user_input.get("username")
-            password = user_input.get("password")
+            username = user_input.get(USERNAME_CONFIG_KEY)
+            password = user_input.get(PASSWORD_CONFIG_KEY)
 
             has_username = username not in (None, "")
             has_password = password not in (None, "")
             if has_username and not has_password:
-                errors["password"] = "required_with_username"
+                errors[PASSWORD_CONFIG_KEY] = "required_with_username"
             elif has_password and not has_username:
-                errors["username"] = "required_with_password"
+                errors[USERNAME_CONFIG_KEY] = "required_with_password"
             elif has_password and has_username:
                 gwn_config.username = str(username)
                 gwn_config.password = GwnConfig.hash_password(str(password))
-                data["username"] = gwn_config.username
-                data["password"] = gwn_config.password
+                data[USERNAME_CONFIG_KEY] = gwn_config.username
+                data[PASSWORD_CONFIG_KEY] = gwn_config.password
 
-            restricted_api = user_input.get("restricted_api")
+            restricted_api = user_input.get(RESTRICTED_API_CONFIG_KEY)
             if restricted_api is not None and bool(restricted_api):
                 if not has_username or not has_password:
-                    errors["restricted_api"] = "requires_password_username"
+                    errors[RESTRICTED_API_CONFIG_KEY] = "requires_password_username"
                 else:
                     gwn_config.restricted_api = bool(restricted_api)
-                    data["restricted_api"] = gwn_config.restricted_api
+                    data[RESTRICTED_API_CONFIG_KEY] = gwn_config.restricted_api
 
-            exclude_passphrase = user_input.get("exclude_passphrase")
+            exclude_passphrase = user_input.get(EXCLUDE_PASSPHRASE_CONFIG_KEY)
             if self._check_numeric_list(exclude_passphrase):
                 gwn_config.exclude_passphrase = GwnLibInterface.parse_int_list(exclude_passphrase)
-                data["exclude_passphrase"] = gwn_config.exclude_passphrase
+                data[EXCLUDE_PASSPHRASE_CONFIG_KEY] = gwn_config.exclude_passphrase
             else:
-                errors["exclude_passphrase"] = "not_list_of_ints"
+                errors[EXCLUDE_PASSPHRASE_CONFIG_KEY] = "not_list_of_ints"
 
-            exclude_ssid = user_input.get("exclude_ssid")
+            exclude_ssid = user_input.get(EXCLUDE_SSID_CONFIG_KEY)
             if self._check_numeric_list(exclude_ssid):
                 gwn_config.exclude_ssid = GwnLibInterface.parse_int_list(exclude_ssid)
-                data["exclude_ssid"] = gwn_config.exclude_ssid
+                data[EXCLUDE_SSID_CONFIG_KEY] = gwn_config.exclude_ssid
             else:
-                errors["exclude_ssid"] = "not_list_of_ints"
+                errors[EXCLUDE_SSID_CONFIG_KEY] = "not_list_of_ints"
 
-            exclude_device = user_input.get("exclude_device")
+            exclude_device = user_input.get(EXCLUDE_DEVICE_CONFIG_KEY)
             if self._check_mac_list(exclude_device):
                 gwn_config.exclude_device = GwnLibInterface.parse_str_list(exclude_device)
-                data["exclude_device"] = gwn_config.exclude_device
+                data[EXCLUDE_DEVICE_CONFIG_KEY] = gwn_config.exclude_device
             else:
-                errors["exclude_device"] = "not_list_of_macs"
+                errors[EXCLUDE_DEVICE_CONFIG_KEY] = "not_list_of_macs"
 
-            exclude_network = user_input.get("exclude_network")
+            exclude_network = user_input.get(EXCLUDE_NETWORK_CONFIG_KEY)
             if self._check_numeric_list(exclude_network):
                 gwn_config.exclude_network = GwnLibInterface.parse_int_list(exclude_network)
-                data["exclude_network"] = gwn_config.exclude_network
+                data[EXCLUDE_NETWORK_CONFIG_KEY] = gwn_config.exclude_network
             else:
-                errors["exclude_network"] = "not_list_of_ints"
+                errors[EXCLUDE_NETWORK_CONFIG_KEY] = "not_list_of_ints"
 
-            base_url = user_input.get("base_url")
+            base_url = user_input.get(BASE_URL_CONFIG_KEY)
             if base_url is not None:
                 gwn_config.base_url = str(base_url)
-                data["base_url"] = gwn_config.base_url
+                data[BASE_URL_CONFIG_KEY] = gwn_config.base_url
 
-            ignore_failed_fetch_before_update = user_input.get("ignore_failed_fetch_before_update")
+            ignore_failed_fetch_before_update = user_input.get(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY)
             if ignore_failed_fetch_before_update is not None:
                 gwn_config.ignore_failed_fetch_before_update = bool(ignore_failed_fetch_before_update)
-                data["ignore_failed_fetch_before_update"] = gwn_config.ignore_failed_fetch_before_update
+                data[IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY] = gwn_config.ignore_failed_fetch_before_update
 
-            ssid_name_to_device_binding = user_input.get("ssid_name_to_device_binding")
+            ssid_name_to_device_binding = user_input.get(SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY)
             if ssid_name_to_device_binding is not None:
                 gwn_config.ssid_name_to_device_binding = bool(ssid_name_to_device_binding)
-                data["ssid_name_to_device_binding"] = gwn_config.ssid_name_to_device_binding
+                data[SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY] = gwn_config.ssid_name_to_device_binding
 
-            no_publish = user_input.get("no_publish")
+            no_publish = user_input.get(NO_PUBLISH_CONFIG_KEY)
             if no_publish is not None:
                 gwn_config.no_publish = bool(no_publish)
-                data["no_publish"] = gwn_config.no_publish
+                data[NO_PUBLISH_CONFIG_KEY] = gwn_config.no_publish
 
             if len(errors) == 0:
                 gwn_client: GwnClient = GwnClient(gwn_config)
@@ -139,22 +164,22 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         defaults: GwnConfig = GwnConfig("dummy", "dummy") # dummy to initialise the defaults
         schema = vol.Schema(
             {
-                vol.Required("app_id"): str,
-                vol.Required("secret_key"): str,
-                vol.Optional("restricted_api", default=defaults.restricted_api): bool,
-                vol.Optional("username", default=defaults.username): str,
-                vol.Optional("password", default=defaults.password): str,
-                vol.Optional("base_url", default=defaults.base_url): str,
-                vol.Optional("page_size", default=defaults.page_size): int,
-                vol.Optional("max_pages", default=defaults.max_pages): int,
-                vol.Optional("refresh_period_s", default=defaults.refresh_period_s): int,
-                vol.Optional("exclude_passphrase", default=",".join(str(id) for id in defaults.exclude_passphrase)): str,
-                vol.Optional("exclude_ssid", default=",".join(str(id) for id in defaults.exclude_ssid)): str,
-                vol.Optional("exclude_device", default=",".join(defaults.exclude_device)): str,
-                vol.Optional("exclude_network", default=",".join(str(id) for id in defaults.exclude_network)): str,
-                vol.Optional("ignore_failed_fetch_before_update", default=defaults.ignore_failed_fetch_before_update): bool,
-                vol.Optional("ssid_name_to_device_binding", default=defaults.ssid_name_to_device_binding): bool,
-                vol.Optional("no_publish", default=defaults.no_publish): bool
+                vol.Required(APP_ID_CONFIG_KEY): str,
+                vol.Required(SECRET_KEY_CONFIG_KEY): str,
+                vol.Optional(RESTRICTED_API_CONFIG_KEY, default=defaults.restricted_api): bool,
+                vol.Optional(USERNAME_CONFIG_KEY, default=defaults.username): str,
+                vol.Optional(PASSWORD_CONFIG_KEY, default=defaults.password): str,
+                vol.Optional(BASE_URL_CONFIG_KEY, default=defaults.base_url): str,
+                vol.Optional(PAGE_SIZE_CONFIG_KEY, default=defaults.page_size): int,
+                vol.Optional(MAX_PAGES_CONFIG_KEY, default=defaults.max_pages): int,
+                vol.Optional(REFRESH_PERIOD_S_CONFIG_KEY, default=defaults.refresh_period_s): int,
+                vol.Optional(EXCLUDE_PASSPHRASE_CONFIG_KEY, default=",".join(str(id) for id in defaults.exclude_passphrase)): str,
+                vol.Optional(EXCLUDE_SSID_CONFIG_KEY, default=",".join(str(id) for id in defaults.exclude_ssid)): str,
+                vol.Optional(EXCLUDE_DEVICE_CONFIG_KEY, default=",".join(defaults.exclude_device)): str,
+                vol.Optional(EXCLUDE_NETWORK_CONFIG_KEY, default=",".join(str(id) for id in defaults.exclude_network)): str,
+                vol.Optional(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY, default=defaults.ignore_failed_fetch_before_update): bool,
+                vol.Optional(SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY, default=defaults.ssid_name_to_device_binding): bool,
+                vol.Optional(NO_PUBLISH_CONFIG_KEY, default=defaults.no_publish): bool
             }
         )
 
