@@ -5,7 +5,8 @@
 >
 > `https://github.com/shopsD/Grandstream-GWN-HomeAssistant-MQTT`
 >
-> in release v0.0.3
+> in release v0.0.4 - Planned 12 June 2026
+> v0.0.4 will be the final release before v0.1.0
 
 <img src="./assets/logo.png" alt="GWN to MQTT Bridge" width="300px"/>
 
