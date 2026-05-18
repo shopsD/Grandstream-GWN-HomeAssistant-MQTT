@@ -1,6 +1,6 @@
 import re
 import voluptuous as vol
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from homeassistant import config_entries
@@ -40,8 +40,8 @@ MAC_MATCHER=re.compile('^([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}(,([0-9a-fA-F]{2}[
 class FlowData:
     gwn_config: GwnConfig | None = None
     gwn_client: GwnClient | None = None
-    data: dict[str, Any] = {}
-    errors: dict[str, str] = {}
+    data: dict[str, Any] = field(default_factory=dict)
+    errors: dict[str, str] = field(default_factory=dict)
     authenticated: bool = False
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -172,8 +172,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return FlowData()
     
     @staticmethod
-    def create_config_schema() -> vol.Schema:
-        defaults: GwnConfig = GwnConfig("dummy", "dummy") # dummy to initialise the defaults
+    def create_config_schema(defaults: GwnConfig | None = None) -> vol.Schema:
+        if defaults is None:
+            defaults = GwnConfig("", "")
         return vol.Schema(
             {
                 vol.Required(APP_ID_CONFIG_KEY): str,
@@ -205,7 +206,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self.hass.data[DOMAIN][CLIENT_CONFIG_KEY][self.flow_id] = {CLIENT_KEY: flow_data.gwn_client, CONFIG_KEY: flow_data.gwn_config}
                 return self.async_create_entry(title=flow_data.gwn_config.base_url, data=flow_data.data)
 
-        return self.async_show_form(step_id="user", data_schema=ConfigFlow.create_config_schema(), errors=flow_data.errors)
+            return self.async_show_form(step_id="user", data_schema=ConfigFlow.create_config_schema(flow_data.gwn_config), errors=flow_data.errors)
+        return self.async_show_form(step_id="user", data_schema=ConfigFlow.create_config_schema(), errors={})
 
     @staticmethod
     @callback
@@ -232,5 +234,5 @@ class OptionsFlowHandler(OptionsFlow):
                 await self.hass.config_entries.async_reload(self._config_entry.entry_id)
                 return self.async_create_entry(title="", data={})
 
-            return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(), errors=flow_data.errors)
+            return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(flow_data.gwn_config), errors=flow_data.errors)
         return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(), errors={})
