@@ -229,3 +229,6 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
         if result:
             await self.async_request_refresh()
         return result
+
+    async def close(self) -> None:
+        await self._gwn_client.close()

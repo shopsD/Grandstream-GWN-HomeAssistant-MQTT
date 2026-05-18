@@ -5,8 +5,8 @@ from typing import Any
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 
-from .const import DOMAIN
-from .GwnLibInterface import GwnLibInterface
+from .const import DOMAIN, CLIENT_CONFIG_KEY, CLIENT_KEY, CONFIG_KEY, FLOW_ID_KEY
+from .gwn_lib_interface import GwnLibInterface
 from gwn.api import GwnClient
 from gwn.authentication import GwnConfig
 
@@ -28,7 +28,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data: dict[str, Any] = {
                 "app_id": gwn_config.app_id,
                 "secret_key": gwn_config.secret_key,
-                "flow_id": self.flow_id
+                FLOW_ID_KEY: self.flow_id
             }
 
             page_size = user_input.get("page_size")
@@ -129,8 +129,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 gwn_client: GwnClient = GwnClient(gwn_config)
                 if await gwn_client.authenticate():
                     self.hass.data.setdefault(DOMAIN, {})
-                    self.hass.data[DOMAIN].setdefault("gwn_client_config", {})
-                    self.hass.data[DOMAIN]["gwn_client_config"][self.flow_id] = {"client": gwn_client, "config": gwn_config}
+                    self.hass.data[DOMAIN].setdefault(CLIENT_CONFIG_KEY, {})
+                    self.hass.data[DOMAIN][CLIENT_CONFIG_KEY][self.flow_id] = {CLIENT_KEY: gwn_client, CONFIG_KEY: gwn_config}
                     return self.async_create_entry(title=gwn_config.base_url, data=data)
                 await gwn_client.close()
                 errors["base"] = "user_pass_authentication_failed" if gwn_client.api_authenticated else "api_authentication_failed"
