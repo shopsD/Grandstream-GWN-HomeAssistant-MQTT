@@ -201,6 +201,14 @@ class GwnInterface:
     def user_password_login(self) -> bool:
         return self._config.username is not None and self._config.password is not None
 
+    @property
+    def api_authenticated(self) -> bool:
+        return self._token is not None
+
+    @property
+    def user_password_authenticated(self) -> bool:
+        return self._token is not None and self._token.authorisation_key is not None
+
     async def close(self) -> None:
         if self._session is not None and not self._session.closed:
             await self._session.close()
@@ -208,7 +216,7 @@ class GwnInterface:
 
     async def authenticate(self) -> bool:
         await self._ensure_token_valid()
-        return (self._token is not None and (not self.user_password_login or self._token.authorisation_key is not None))
+        return (self.api_authenticated and (not self.user_password_login or self.user_password_authenticated))
 
     async def get_all_networks(self) -> list[dict[str, Any]] | None:
         return await self._post_paginated("oapi/v1.0.0/network/list",{})

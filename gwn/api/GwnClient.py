@@ -408,6 +408,14 @@ class GwnClient:
     def is_readonly(self) -> bool:
         return not self._interface.user_password_login
 
+    @property
+    def api_authenticated(self) -> bool:
+        return self._interface.api_authenticated
+
+    @property
+    def user_password_authenticated(self) -> bool:
+        return self._interface.user_password_authenticated
+
     async def close(self) -> None:
         await self._interface.close()
 

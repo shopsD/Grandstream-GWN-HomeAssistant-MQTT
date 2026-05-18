@@ -6,6 +6,8 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 
 from .const import DOMAIN
+from .GwnLibInterface import GwnLibInterface
+from gwn.api import GwnClient
 from gwn.authentication import GwnConfig
 
 MAC_MATCHER=re.compile('^([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}(,([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2})*$')
@@ -22,29 +24,35 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
+            gwn_config: GwnConfig = GwnConfig(app_id=str(user_input["app_id"]), secret_key=str(user_input["secret_key"]))
             data: dict[str, Any] = {
-                "app_id": str(user_input["app_id"]),
-                "secret_key": str(user_input["secret_key"])
+                "app_id": gwn_config.app_id,
+                "secret_key": gwn_config.secret_key,
+                "flow_id": self.flow_id
             }
+
             page_size = user_input.get("page_size")
             if page_size is not None:
                 if int(page_size) < 1:
                     errors["page_size"] = "required_ge_1"
                 else:
-                    data["page_size"] = int(page_size)
+                    gwn_config.page_size = int(page_size)
+                    data["page_size"] = gwn_config.page_size
 
             max_pages = user_input.get("max_pages")
             if max_pages is not None:
                 if int(max_pages) < 0:
                     errors["max_pages"] = "required_ge_0"
                 else:
-                    data["max_pages"] = int(max_pages)
+                    gwn_config.max_pages = int(max_pages)
+                    data["max_pages"] = gwn_config.max_pages
             refresh_period_s = user_input.get("refresh_period_s")
             if refresh_period_s is not None:
                 if int(refresh_period_s) < 0:
                     errors["refresh_period_s"] = "required_ge_0"
                 else:
-                    data["refresh_period_s"] = int(refresh_period_s)
+                    gwn_config.refresh_period_s = int(refresh_period_s)
+                    data["refresh_period_s"] = gwn_config.refresh_period_s
 
             username = user_input.get("username")
             password = user_input.get("password")
@@ -56,62 +64,79 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             elif has_password and not has_username:
                 errors["username"] = "required_with_password"
             elif has_password and has_username:
-                data["username"] = str(username)
-                data["password"] = str(password)
+                gwn_config.username = str(username)
+                gwn_config.password = GwnConfig.hash_password(str(password))
+                data["username"] = gwn_config.username
+                data["password"] = gwn_config.password
 
             restricted_api = user_input.get("restricted_api")
             if restricted_api is not None and bool(restricted_api):
                 if not has_username or not has_password:
                     errors["restricted_api"] = "requires_password_username"
                 else:
-                    data["restricted_api"] = bool(restricted_api)
+                    gwn_config.restricted_api = bool(restricted_api)
+                    data["restricted_api"] = gwn_config.restricted_api
 
             exclude_passphrase = user_input.get("exclude_passphrase")
             if self._check_numeric_list(exclude_passphrase):
-                data["exclude_passphrase"] = str(exclude_passphrase)
+                gwn_config.exclude_passphrase = GwnLibInterface.parse_int_list(exclude_passphrase)
+                data["exclude_passphrase"] = gwn_config.exclude_passphrase
             else:
                 errors["exclude_passphrase"] = "not_list_of_ints"
 
             exclude_ssid = user_input.get("exclude_ssid")
             if self._check_numeric_list(exclude_ssid):
-                data["exclude_ssid"] = str(exclude_ssid)
+                gwn_config.exclude_ssid = GwnLibInterface.parse_int_list(exclude_ssid)
+                data["exclude_ssid"] = gwn_config.exclude_ssid
             else:
                 errors["exclude_ssid"] = "not_list_of_ints"
 
             exclude_device = user_input.get("exclude_device")
             if self._check_mac_list(exclude_device):
-                data["exclude_device"] = str(exclude_device)
+                gwn_config.exclude_device = GwnLibInterface.parse_str_list(exclude_device)
+                data["exclude_device"] = gwn_config.exclude_device
             else:
                 errors["exclude_device"] = "not_list_of_macs"
 
             exclude_network = user_input.get("exclude_network")
             if self._check_numeric_list(exclude_network):
-                data["exclude_network"] = str(exclude_network)
+                gwn_config.exclude_network = GwnLibInterface.parse_int_list(exclude_network)
+                data["exclude_network"] = gwn_config.exclude_network
             else:
                 errors["exclude_network"] = "not_list_of_ints"
 
             base_url = user_input.get("base_url")
             if base_url is not None:
-                data["base_url"] = str(base_url)
+                gwn_config.base_url = str(base_url)
+                data["base_url"] = gwn_config.base_url
 
             ignore_failed_fetch_before_update = user_input.get("ignore_failed_fetch_before_update")
             if ignore_failed_fetch_before_update is not None:
-                data["ignore_failed_fetch_before_update"] = bool(ignore_failed_fetch_before_update)
+                gwn_config.ignore_failed_fetch_before_update = bool(ignore_failed_fetch_before_update)
+                data["ignore_failed_fetch_before_update"] = gwn_config.ignore_failed_fetch_before_update
 
             ssid_name_to_device_binding = user_input.get("ssid_name_to_device_binding")
             if ssid_name_to_device_binding is not None:
-                data["ssid_name_to_device_binding"] = bool(ssid_name_to_device_binding)
+                gwn_config.ssid_name_to_device_binding = bool(ssid_name_to_device_binding)
+                data["ssid_name_to_device_binding"] = gwn_config.ssid_name_to_device_binding
 
             no_publish = user_input.get("no_publish")
             if no_publish is not None:
-                data["no_publish"] = bool(no_publish)
-
+                gwn_config.no_publish = bool(no_publish)
+                data["no_publish"] = gwn_config.no_publish
 
             if len(errors) == 0:
-                return self.async_create_entry(
-                    title=user_input["base_url"],
-                    data=data
-                )
+                gwn_client: GwnClient = GwnClient(gwn_config)
+                if await gwn_client.authenticate():
+                    self.hass.data.setdefault(DOMAIN, {})
+                    self.hass.data[DOMAIN].setdefault("gwn_client_config", {})
+                    self.hass.data[DOMAIN]["gwn_client_config"]["client"] = gwn_client
+                    self.hass.data[DOMAIN]["gwn_client_config"]["config"] = gwn_config
+                    return self.async_create_entry(title=gwn_config.base_url, data=data)
+                await gwn_client.close()
+                errors["authentication"] = "user_pass_authentication_failed" if gwn_client.api_authenticated else "api_authentication_failed"
+
+
         defaults: GwnConfig = GwnConfig("dummy", "dummy") # dummy to initialise the defaults
         schema = vol.Schema(
             {
