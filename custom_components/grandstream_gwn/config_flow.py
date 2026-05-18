@@ -170,18 +170,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "user_pass_authentication_failed" if gwn_client.api_authenticated else "api_authentication_failed"
             return FlowData(data=data, errors=errors)
         return FlowData()
-    
+
     @staticmethod
     def create_config_schema(defaults: GwnConfig | None = None) -> vol.Schema:
         if defaults is None:
             defaults = GwnConfig("", "")
         return vol.Schema(
             {
-                vol.Required(APP_ID_CONFIG_KEY): str,
-                vol.Required(SECRET_KEY_CONFIG_KEY): str,
+                vol.Required(APP_ID_CONFIG_KEY, default=defaults.app_id): str,
+                vol.Required(SECRET_KEY_CONFIG_KEY, default=defaults.secret_key): str,
                 vol.Optional(RESTRICTED_API_CONFIG_KEY, default=defaults.restricted_api): bool,
                 vol.Optional(USERNAME_CONFIG_KEY, default=defaults.username): str,
-                vol.Optional(PASSWORD_CONFIG_KEY, default=defaults.password): str,
+                vol.Optional(PASSWORD_CONFIG_KEY, default=""): str,
                 vol.Optional(BASE_URL_CONFIG_KEY, default=defaults.base_url): str,
                 vol.Optional(PAGE_SIZE_CONFIG_KEY, default=defaults.page_size): int,
                 vol.Optional(MAX_PAGES_CONFIG_KEY, default=defaults.max_pages): int,
@@ -219,10 +219,11 @@ class OptionsFlowHandler(OptionsFlow):
         self._config_entry: ConfigEntry = config_entry
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        current_data: dict[str, Any] = dict(self._config_entry.data)
+        flow_id: str = str(current_data.get(FLOW_ID_KEY, self._config_entry.entry_id))
+        current_config: GwnConfig = GwnLibInterface.build_gwn_config(self._config_entry)
+        current_config.password = ""
         if user_input is not None:
-            current_data: dict[str, Any] = dict(self._config_entry.data)
-            flow_id: str = str(current_data.get(FLOW_ID_KEY, self._config_entry.entry_id))
-
             flow_data: FlowData = await ConfigFlow.build_and_validate_config(flow_id, user_input)
 
             if flow_data.authenticated:
@@ -234,5 +235,5 @@ class OptionsFlowHandler(OptionsFlow):
                 await self.hass.config_entries.async_reload(self._config_entry.entry_id)
                 return self.async_create_entry(title="", data={})
 
-            return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(flow_data.gwn_config), errors=flow_data.errors)
-        return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(), errors={})
+            return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(current_config), errors=flow_data.errors)
+        return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(current_config), errors={})
