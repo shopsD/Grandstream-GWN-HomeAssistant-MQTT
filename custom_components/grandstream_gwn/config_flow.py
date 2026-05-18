@@ -95,9 +95,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             username = user_input.get(USERNAME_CONFIG_KEY)
             password = user_input.get(PASSWORD_CONFIG_KEY)
 
-            has_username = username not in (None, "")
-            has_password = password not in (None, "")
-            if previous_password not in (None, "") and has_username and not has_password:
+            has_username: bool = username not in (None, "")
+            has_password: bool = password not in (None, "")
+            has_previous_password: bool = previous_password not in (None, "")
+            if has_previous_password and has_username and not has_password:
                 has_password = True
                 password = previous_password
             if has_username and not has_password:
@@ -106,7 +107,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[USERNAME_CONFIG_KEY] = "required_with_password"
             elif has_password and has_username:
                 gwn_config.username = str(username)
-                gwn_config.password = GwnConfig.hash_password(str(password))
+                gwn_config.password = password if has_previous_password else GwnConfig.hash_password(str(password))
                 data[USERNAME_CONFIG_KEY] = gwn_config.username
                 data[PASSWORD_CONFIG_KEY] = gwn_config.password
 
@@ -225,7 +226,7 @@ class OptionsFlowHandler(OptionsFlow):
         current_data: dict[str, Any] = dict(self._config_entry.data)
         flow_id: str = str(current_data.get(FLOW_ID_KEY, self._config_entry.entry_id))
         current_config: GwnConfig = GwnLibInterface.build_gwn_config(self._config_entry)
-        previous_password: str = current_config.password
+        previous_password: str| None = current_config.password
         current_config.password = ""
         if user_input is not None:
             flow_data: FlowData = await ConfigFlow.build_and_validate_config(flow_id, user_input, previous_password)
