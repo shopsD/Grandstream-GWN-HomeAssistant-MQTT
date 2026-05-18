@@ -3,7 +3,7 @@
 > [!Important]
 > This repository will be moving to
 >
-> `https://github.com/shopsD/GG-HAM`
+> `https://github.com/shopsD/Grandstream-GWN-HomeAssistant-MQTT`
 >
 > in release v0.0.3
 
