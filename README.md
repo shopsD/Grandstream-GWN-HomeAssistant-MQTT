@@ -3,13 +3,15 @@
 > [!Important]
 > This repository will be moving to
 >
-> `https://github.com/shopsD/Grandstream-GWN-MQTT-HomeAssistant`
+> `https://github.com/shopsD/Grandstream-GWN-HomeAssistant-MQTT`
 >
 > in release v0.0.3
 
 <img src="./assets/logo.png" alt="GWN to MQTT Bridge" width="300px"/>
 
-Grandstream GWN Manager tooling for publishing GWN network, access point, and SSID data over MQTT, with optional Home Assistant MQTT discovery. This tool is not endorsed, affiliated nor supported by Grandstream.
+GG-HAM (Grandstream GWN - Home Assistant/MQTT) is a project created for the desire to automate some behaviour found with Grandstream projects. This tool is meant to serve as a way of viewing and controlling Grandstream Networks, Devices and SSIDs using the GWN Manager and be easy to integrate with tools like Home Assistant and Node Red.
+
+It is made up of a Library, an MQTT Bridge application with support for Home Assistant Discovery and a Home Assistant Integration. This tool is not endorsed, affiliated nor supported by Grandstream.
 
 The MQTT bridge is the primary working application in this repository. The native Home Assistant custom component is present as a workspace/scaffold, but the MQTT bridge is currently the main implementation path.
 
