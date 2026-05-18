@@ -14,7 +14,7 @@ class GwnLibInterface:
     def parse_str_list(value: str | None) -> list[str]:
         if value is None or value.strip() == "":
             return []
-        return [item.strip() for item in value.split(",") if item.strip()]
+        return [GwnConfig.normalise_mac(item.strip()) for item in value.split(",") if item.strip()]
 
     @staticmethod
     def build_gwn_config(entry: ConfigEntry) -> GwnConfig:
