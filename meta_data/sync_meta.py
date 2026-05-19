@@ -31,6 +31,7 @@ def main() -> None:
     UPDATE_URL = _project_meta.UPDATE_URL
     LOGGERS = _project_meta.LOGGERS
     INTEGRATION_NAME = _project_meta.INTEGRATION_NAME
+    LIBRARY_AIOHTTP_VERSION= _project_meta.LIBRARY_AIOHTTP_VERSION
 
     SCRIPT_PATH: Path = Path(__file__).resolve()
 
@@ -63,7 +64,7 @@ def main() -> None:
     PYTHON_VERSION_FILE = args.repo_root / ".python-version"
     README = args.repo_root / "README.md"
     COMPOSE_FILE = args.repo_root / "docker-compose.yml"
-    print (f"Syncing files:\n\t{GWN_CONSTANTS}\n\t{VERSION_MANAGER}\n\t{PYPROJECT}\n\t{HACS}\n\t{HACS_MANIFEST}\n\t{PYTHON_VERSION_FILE}\n\t{README}\n\t{COMPOSE_FILE}\nVersions:\n\tApp Version: {APP_VERSION}\n\tPython Version: {PYTHON_VERSION}\n\tPython Requires: {PYTHON_REQUIRES}\n\tHome Assistant Min Version: {HOMEASSISTANT_MIN_VERSION}\n\tRepo URL: {REPOSITORY_URL}\n\tContainer URL: {CONTAINER_URL}\n\tUpdate URL: {UPDATE_URL}\n\tLoggers: {LOGGERS}\n\tIntegration Name: {INTEGRATION_NAME}")
+    print (f"Syncing files:\n\t{GWN_CONSTANTS}\n\t{VERSION_MANAGER}\n\t{PYPROJECT}\n\t{HACS}\n\t{HACS_MANIFEST}\n\t{PYTHON_VERSION_FILE}\n\t{README}\n\t{COMPOSE_FILE}\nVersions:\n\tApp Version: {APP_VERSION}\n\tPython Version: {PYTHON_VERSION}\n\tPython Requires: {PYTHON_REQUIRES}\n\tHome Assistant Min Version: {HOMEASSISTANT_MIN_VERSION}\n\tAIO HTTP Version: {LIBRARY_AIOHTTP_VERSION}\n\tRepo URL: {REPOSITORY_URL}\n\tContainer URL: {CONTAINER_URL}\n\tUpdate URL: {UPDATE_URL}\n\tLoggers: {LOGGERS}\n\tIntegration Name: {INTEGRATION_NAME}")
 
     replace_or_fail(
         PYPROJECT,
@@ -81,6 +82,11 @@ def main() -> None:
         f'ha = ["homeassistant>={HOMEASSISTANT_MIN_VERSION}"]'
     )
     replace_or_fail(
+        PYPROJECT,
+        r'^(\s*)"aiohttp\s*[^"]+"(,?)$',
+        rf'\1"aiohttp{LIBRARY_AIOHTTP_VERSION}"\2'
+    )
+    replace_or_fail(
         HACS,
         r'^(\s*)"homeassistant":\s*"[^"]+"(,?)$',
         rf'\1"homeassistant": "{HOMEASSISTANT_MIN_VERSION}"\2'
@@ -94,6 +100,11 @@ def main() -> None:
         HACS_MANIFEST,
         r'^(\s*)"version":\s*"[^"]+"(,?)$',
         rf'\1"version": "{APP_VERSION}"\2'
+    )
+    replace_or_fail(
+        HACS_MANIFEST,
+        r'^(\s*.+)"aiohttp\s*[^"]+"(.*)$',
+        rf'\1"aiohttp{LIBRARY_AIOHTTP_VERSION}"\2'
     )
     replace_or_fail(
         HACS_MANIFEST,
