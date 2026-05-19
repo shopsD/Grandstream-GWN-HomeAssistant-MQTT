@@ -34,7 +34,7 @@ from .gwn_lib_interface import GwnLibInterface
 from gwn.api import GwnClient
 from gwn.authentication import GwnConfig
 
-MAC_MATCHER=re.compile('^([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}(,([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2})*$')
+MAC_MATCHER: re.Pattern[str] = re.compile(r"([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}")
 
 @dataclass(slots=True)
 class FlowData:
@@ -49,11 +49,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     def _check_numeric_list(list_string: str | None) -> bool:
-        return list_string is not None and (list_string == "" or list_string.replace(",","").isnumeric())
+        return list_string is not None and (list_string == "" or list_string.replace(",","").replace(" ","").isnumeric())
 
     @staticmethod
     def _check_mac_list(list_string: str | None) -> bool:
-        return list_string is not None and (list_string == "" or bool(MAC_MATCHER.match(list_string)))
+        if list_string is None:
+            return False
+        if list_string == "":
+            return True
+        return all(MAC_MATCHER.fullmatch(mac.strip()) for mac in list_string.split(","))
 
     @staticmethod
     async def build_and_validate_config(flow_id: str, user_input: dict[str, Any] | None = None, previous_username: str | None = None, previous_password: str | None = None) -> FlowData:
