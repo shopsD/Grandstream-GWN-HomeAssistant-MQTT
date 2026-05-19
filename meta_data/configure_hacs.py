@@ -1,8 +1,15 @@
-from pathlib import Path
 import re
+import shutil
+from pathlib import Path
 
+ROOT_NAME="gwn"
+
+integration_root: Path = Path("custom_components/grandstream_gwn")
 archive_root: Path = Path("dist/hacs")
-vendored_root: Path = archive_root / "gwn"
+library_root: Path = Path(ROOT_NAME)
+hacs_archive_root: Path = archive_root / library_root
+
+ignore_patterns: set[str] = set(["__pycache__*", "*.pyc", "*.pyo"])
 
 from_pattern: re.Pattern[str] = re.compile(
     r"^(?P<indent>\s*)from\s+gwn(?P<module>(?:\.[A-Za-z_][A-Za-z0-9_]*)*)\s+import\s+(?P<names>.+)$",
@@ -34,12 +41,12 @@ def _rewrite_from_line(target_file: Path, match: re.Match[str]) -> str:
     imported_names: str = match.group("names")
     module_parts: list[str] = module_suffix.removeprefix(".").split(".") if len(module_suffix) > 0 else []
 
-    if vendored_root in target_file.parents:
-        current_parent_parts: list[str] = list(target_file.relative_to(vendored_root).parent.parts)
+    if hacs_archive_root in target_file.parents:
+        current_parent_parts: list[str] = list(target_file.relative_to(hacs_archive_root).parent.parts)
         relative_module: str = _relative_module(current_parent_parts, module_parts)
         return f"{indent}from {relative_module} import {imported_names}"
 
-    relative_module = f".gwn{module_suffix}"
+    relative_module = f".{ROOT_NAME}{module_suffix}"
     return f"{indent}from {relative_module} import {imported_names}"
 
 def _rewrite_import_line(target_file: Path, match: re.Match[str]) -> str:
@@ -57,7 +64,7 @@ def _rewrite_import_line(target_file: Path, match: re.Match[str]) -> str:
             module_name = module_entry
 
         module_parts: list[str] = module_name.split(".")
-        if module_parts[0] != "gwn":
+        if module_parts[0] != ROOT_NAME:
             rewritten_lines.append(f"{indent}import {module_entry}")
             continue
 
@@ -68,21 +75,25 @@ def _rewrite_import_line(target_file: Path, match: re.Match[str]) -> str:
         imported_name: str = target_parts[-1]
         import_suffix: str = f" as {alias_name}" if alias_name is not None else ""
 
-        if vendored_root in target_file.parents:
-            current_parent_parts: list[str] = list(target_file.relative_to(vendored_root).parent.parts)
+        if hacs_archive_root in target_file.parents:
+            current_parent_parts: list[str] = list(target_file.relative_to(hacs_archive_root).parent.parts)
             relative_module: str = _relative_module(current_parent_parts, target_parts[:-1])
             rewritten_lines.append(f"{indent}from {relative_module} import {imported_name}{import_suffix}")
+        elif len(target_parts) == 1:
+            rewritten_lines.append(f"{indent}from .{ROOT_NAME} import {imported_name}{import_suffix}")
         else:
-            if len(target_parts) == 1:
-                rewritten_lines.append(f"{indent}from .gwn import {imported_name}{import_suffix}")
-            else:
-                rewritten_lines.append(
-                    f"{indent}from .gwn.{'.'.join(target_parts[:-1])} import {imported_name}{import_suffix}"
-                )
+            rewritten_lines.append(f"{indent}from .{ROOT_NAME}.{'.'.join(target_parts[:-1])} import {imported_name}{import_suffix}")
 
     return "\n".join(rewritten_lines)
 
+def _setup_directory_structure() -> None:
+    if archive_root.exists() and archive_root.is_dir():
+        shutil.rmtree(archive_root)
+    shutil.copytree(integration_root.resolve(), archive_root.resolve(), dirs_exist_ok=True, ignore=shutil.ignore_patterns(*ignore_patterns))
+    shutil.copytree(library_root.resolve(), hacs_archive_root.resolve(), dirs_exist_ok=True, ignore=shutil.ignore_patterns(*ignore_patterns))
+
 def main() -> None:
+    _setup_directory_structure()
     staged_files: list[Path] = sorted(archive_root.rglob("*.py"))
     for target_file in staged_files:
         content: str = target_file.read_text(encoding="utf-8")

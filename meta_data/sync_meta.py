@@ -11,11 +11,14 @@ else:
     except ImportError:
         import project_meta as _project_meta
 
-def replace_or_fail(path: Path, pattern: str, repl: str) -> None:
+def replace_or_fail(path: Path, pattern: str, repl: str, occurences: int = 1) -> None:
+    if occurences < 1:
+        raise RuntimeError(f"Occurrences must be a positive value. Got {occurences}")
+
     text = path.read_text(encoding="utf-8")
     new_text, count = re.subn(pattern, repl, text, flags=re.MULTILINE)
-    if count != 1:
-        raise RuntimeError(f"Expected exactly 1 match in {path} for pattern: {pattern}")
+    if count != occurences:
+        raise RuntimeError(f"Expected exactly {occurences} match{"es" if occurences > 1 else ""} in {path} for pattern: {pattern}. Got {count}")
     path.write_text(new_text, encoding="utf-8")
 
 def main() -> None:
@@ -27,6 +30,7 @@ def main() -> None:
     CONTAINER_URL = _project_meta.CONTAINER_URL
     UPDATE_URL = _project_meta.UPDATE_URL
     LOGGERS = _project_meta.LOGGERS
+    INTEGRATION_NAME = _project_meta.INTEGRATION_NAME
 
     SCRIPT_PATH: Path = Path(__file__).resolve()
 
@@ -59,7 +63,7 @@ def main() -> None:
     PYTHON_VERSION_FILE = args.repo_root / ".python-version"
     README = args.repo_root / "README.md"
     COMPOSE_FILE = args.repo_root / "docker-compose.yml"
-    print (f"Syncing files:\n\t{GWN_CONSTANTS}\n\t{VERSION_MANAGER}\n\t{PYPROJECT}\n\t{HACS}\n\t{HACS_MANIFEST}\n\t{PYTHON_VERSION_FILE}\n\t{README}\n\t{COMPOSE_FILE}\nVersions:\n\tApp Version: {APP_VERSION}\n\tPython Version: {PYTHON_VERSION}\n\tPython Requires: {PYTHON_REQUIRES}\n\tHome Assistant Min Version: {HOMEASSISTANT_MIN_VERSION}\n\tRepo URL: {REPOSITORY_URL}\n\tContainer URL: {CONTAINER_URL}\n\tUpdate URL: {UPDATE_URL}\n\tLoggers: {LOGGERS}")
+    print (f"Syncing files:\n\t{GWN_CONSTANTS}\n\t{VERSION_MANAGER}\n\t{PYPROJECT}\n\t{HACS}\n\t{HACS_MANIFEST}\n\t{PYTHON_VERSION_FILE}\n\t{README}\n\t{COMPOSE_FILE}\nVersions:\n\tApp Version: {APP_VERSION}\n\tPython Version: {PYTHON_VERSION}\n\tPython Requires: {PYTHON_REQUIRES}\n\tHome Assistant Min Version: {HOMEASSISTANT_MIN_VERSION}\n\tRepo URL: {REPOSITORY_URL}\n\tContainer URL: {CONTAINER_URL}\n\tUpdate URL: {UPDATE_URL}\n\tLoggers: {LOGGERS}\n\tIntegration Name: {INTEGRATION_NAME}")
 
     replace_or_fail(
         PYPROJECT,
@@ -82,9 +86,19 @@ def main() -> None:
         rf'\1"homeassistant": "{HOMEASSISTANT_MIN_VERSION}"\2'
     )
     replace_or_fail(
+        HACS,
+        r'^(\s*)"name":\s*"[^"]+"(,?)$',
+        rf'\1"name": "{INTEGRATION_NAME}"\2'
+    )
+    replace_or_fail(
         HACS_MANIFEST,
         r'^(\s*)"version":\s*"[^"]+"(,?)$',
         rf'\1"version": "{APP_VERSION}"\2'
+    )
+    replace_or_fail(
+        HACS_MANIFEST,
+        r'^(\s*)"name":\s*"[^"]+"(,?)$',
+        rf'\1"name": "{INTEGRATION_NAME}"\2'
     )
     replace_or_fail(
         HACS_MANIFEST,
@@ -115,6 +129,12 @@ def main() -> None:
         README,
         r'^(\s*-\s+)Python\s+`[^`]+`(.*)$',
         rf'\1Python `{PYTHON_VERSION}`\2'
+    )
+    replace_or_fail(
+        README,
+        r'^(.+)([Ss])earch for\s+`[^`]+`(.*)$',
+        rf'\1\2earch for `{INTEGRATION_NAME}`\3',
+        4
     )
     replace_or_fail(
         VERSION_MANAGER,
