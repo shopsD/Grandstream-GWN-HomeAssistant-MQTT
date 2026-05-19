@@ -123,25 +123,25 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             exclude_passphrase = user_input.get(EXCLUDE_PASSPHRASE_CONFIG_KEY)
             if ConfigFlow._check_numeric_list(exclude_passphrase):
-                data[EXCLUDE_PASSPHRASE_CONFIG_KEY] = GwnLibInterface.parse_int_list(exclude_passphrase)
+                data[EXCLUDE_PASSPHRASE_CONFIG_KEY] = exclude_passphrase
             else:
                 errors[EXCLUDE_PASSPHRASE_CONFIG_KEY] = "comma_separated_numbers"
 
             exclude_ssid = user_input.get(EXCLUDE_SSID_CONFIG_KEY)
             if ConfigFlow._check_numeric_list(exclude_ssid):
-                data[EXCLUDE_SSID_CONFIG_KEY] = GwnLibInterface.parse_int_list(exclude_ssid)
+                data[EXCLUDE_SSID_CONFIG_KEY] = exclude_ssid
             else:
                 errors[EXCLUDE_SSID_CONFIG_KEY] = "comma_separated_numbers"
 
             exclude_device = user_input.get(EXCLUDE_DEVICE_CONFIG_KEY)
             if ConfigFlow._check_mac_list(exclude_device):
-                data[EXCLUDE_DEVICE_CONFIG_KEY] = GwnLibInterface.parse_str_list(exclude_device)
+                data[EXCLUDE_DEVICE_CONFIG_KEY] = exclude_device
             else:
                 errors[EXCLUDE_DEVICE_CONFIG_KEY] = "comma_separated_macs"
 
             exclude_network = user_input.get(EXCLUDE_NETWORK_CONFIG_KEY)
             if ConfigFlow._check_numeric_list(exclude_network):
-                data[EXCLUDE_NETWORK_CONFIG_KEY] = GwnLibInterface.parse_int_list(exclude_network)
+                data[EXCLUDE_NETWORK_CONFIG_KEY] = exclude_network
             else:
                 errors[EXCLUDE_NETWORK_CONFIG_KEY] = "comma_separated_numbers"
 
