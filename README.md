@@ -963,6 +963,7 @@ If you want to run tools directly from the virtual environment:
 - MQTT command topics can change real GWN settings. Protect the broker accordingly. If in doubt, use `no_publish: True`  in the MQTT section of the config.
 - Using `no_publish: True` in the config will result in the full payload being written to the log if the log is set to `debug`. This is unencrypted and un-obscured, so SSID passwords will be made visible in this log regardless of if the SSID was excluded from passkey publishing. `GWN Manager` passwords (Plaintext or Hashed) are never written to the log
 - Receiving a malformed MQTT payload will display the entire payload in the log if the log is set to `debug`. This is unencrypted and un-obscured, so SSID passwords will be made visible in this log regardless of if the SSID was excluded from passkey publishing. `GWN Manager` passwords (Plaintext or Hashed) are never written to the log
+- If the logs show authentication failures with username and password and show a code `10006` or an error message `failed with code 10006: Login require check code` then you must log in to GWN Manager manually in your browser and enter the CAPTCHA code before the MQTT Bridge/Integration will be able to login in again. This is usually due to too many incorrect login attempts
 
 ## Additional Notes
 
