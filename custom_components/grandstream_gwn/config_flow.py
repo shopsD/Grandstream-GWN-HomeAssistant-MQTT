@@ -72,7 +72,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             page_size = user_input.get(PAGE_SIZE_CONFIG_KEY)
             if page_size is not None:
                 if int(page_size) < 1:
-                    errors[PAGE_SIZE_CONFIG_KEY] = "Must be greater than or equal to 1"
+                    errors[PAGE_SIZE_CONFIG_KEY] = "required_ge_1"
                 else:
                     gwn_config.page_size = int(page_size)
                     data[PAGE_SIZE_CONFIG_KEY] = gwn_config.page_size
@@ -80,14 +80,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             max_pages = user_input.get(MAX_PAGES_CONFIG_KEY)
             if max_pages is not None:
                 if int(max_pages) < 0:
-                    errors[MAX_PAGES_CONFIG_KEY] = "Must be greater than or equal to 0"
+                    errors[MAX_PAGES_CONFIG_KEY] = "required_ge_0"
                 else:
                     gwn_config.max_pages = int(max_pages)
                     data[MAX_PAGES_CONFIG_KEY] = gwn_config.max_pages
             refresh_period_s = user_input.get(REFRESH_PERIOD_S_CONFIG_KEY)
             if refresh_period_s is not None:
                 if int(refresh_period_s) < 0:
-                    errors[REFRESH_PERIOD_S_CONFIG_KEY] = "Must be greater than or equal to 0"
+                    errors[REFRESH_PERIOD_S_CONFIG_KEY] = "required_ge_0"
                 else:
                     gwn_config.refresh_period_s = int(refresh_period_s)
                     data[REFRESH_PERIOD_S_CONFIG_KEY] = gwn_config.refresh_period_s
@@ -108,9 +108,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 password = previous_password
             
             if has_username and not has_password:
-                errors[PASSWORD_CONFIG_KEY] = "Password is missing"
+                errors[PASSWORD_CONFIG_KEY] = "required_with_username"
             elif has_password and not has_username:
-                errors[USERNAME_CONFIG_KEY] = "Username is missing"
+                errors[USERNAME_CONFIG_KEY] = "required_with_password"
             elif has_password and has_username:
                 gwn_config.username = str(username)
                 gwn_config.password = GwnConfig.hash_password(str(password)) if hash_password else password
@@ -120,7 +120,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             restricted_api = user_input.get(RESTRICTED_API_CONFIG_KEY)
             if restricted_api is not None and bool(restricted_api):
                 if not has_username or not has_password:
-                    errors[RESTRICTED_API_CONFIG_KEY] = "Restricted API requires username and password to be set"
+                    errors[RESTRICTED_API_CONFIG_KEY] = "requires_password_username"
                 else:
                     gwn_config.restricted_api = bool(restricted_api)
                     data[RESTRICTED_API_CONFIG_KEY] = gwn_config.restricted_api
@@ -130,28 +130,28 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 gwn_config.exclude_passphrase = GwnLibInterface.parse_int_list(exclude_passphrase)
                 data[EXCLUDE_PASSPHRASE_CONFIG_KEY] = gwn_config.exclude_passphrase
             else:
-                errors[EXCLUDE_PASSPHRASE_CONFIG_KEY] = "Exclude Passphrase must be a comma-separated list of numbers"
+                errors[EXCLUDE_PASSPHRASE_CONFIG_KEY] = "not_list_of_ints"
 
             exclude_ssid = user_input.get(EXCLUDE_SSID_CONFIG_KEY)
             if ConfigFlow._check_numeric_list(exclude_ssid):
                 gwn_config.exclude_ssid = GwnLibInterface.parse_int_list(exclude_ssid)
                 data[EXCLUDE_SSID_CONFIG_KEY] = gwn_config.exclude_ssid
             else:
-                errors[EXCLUDE_SSID_CONFIG_KEY] = "Exclude SSID must be a comma-separated list of numbers"
+                errors[EXCLUDE_SSID_CONFIG_KEY] = "not_list_of_ints"
 
             exclude_device = user_input.get(EXCLUDE_DEVICE_CONFIG_KEY)
             if ConfigFlow._check_mac_list(exclude_device):
                 gwn_config.exclude_device = GwnLibInterface.parse_str_list(exclude_device)
                 data[EXCLUDE_DEVICE_CONFIG_KEY] = gwn_config.exclude_device
             else:
-                errors[EXCLUDE_DEVICE_CONFIG_KEY] = "Exclude Devices must be a comma-separated list of MAC Addresses"
+                errors[EXCLUDE_DEVICE_CONFIG_KEY] = "not_list_of_macs"
 
             exclude_network = user_input.get(EXCLUDE_NETWORK_CONFIG_KEY)
             if ConfigFlow._check_numeric_list(exclude_network):
                 gwn_config.exclude_network = GwnLibInterface.parse_int_list(exclude_network)
                 data[EXCLUDE_NETWORK_CONFIG_KEY] = gwn_config.exclude_network
             else:
-                errors[EXCLUDE_NETWORK_CONFIG_KEY] = "Exclude Networks must be a comma-separated list of numbers"
+                errors[EXCLUDE_NETWORK_CONFIG_KEY] = "not_list_of_ints"
 
             base_url = user_input.get(BASE_URL_CONFIG_KEY)
             if base_url is not None:
@@ -177,7 +177,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if await gwn_client.authenticate():
                    return FlowData(gwn_config=gwn_config, gwn_client=gwn_client, data=data, authenticated=True)
                 await gwn_client.close()
-                errors["base"] = "Username/Password Authentication Failed" if gwn_client.api_authenticated else "API Authentication Failed"
+                errors["base"] = "user_pass_authentication_failed" if gwn_client.api_authenticated else "api_authentication_failed"
             return FlowData(gwn_config=gwn_config, data=data, errors=errors)
         return FlowData()
 
@@ -190,7 +190,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(APP_ID_CONFIG_KEY, default=defaults.app_id): str,
                 vol.Required(SECRET_KEY_CONFIG_KEY, default=defaults.secret_key): str,
                 vol.Optional(RESTRICTED_API_CONFIG_KEY, default=defaults.restricted_api): bool,
-                vol.Optional(USERNAME_CONFIG_KEY, default=defaults.username): str,
+                vol.Optional(USERNAME_CONFIG_KEY, default=defaults.username if defaults.username is not None else ""): str,
                 vol.Optional(PASSWORD_CONFIG_KEY, default=""): str,
                 vol.Optional(BASE_URL_CONFIG_KEY, default=defaults.base_url): str,
                 vol.Optional(PAGE_SIZE_CONFIG_KEY, default=defaults.page_size): int,
