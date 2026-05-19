@@ -987,7 +987,7 @@ dev = [
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.13.2" },
     { name = "aiomqtt", specifier = ">=2.5.1" },
-    { name = "homeassistant", marker = "extra == 'ha'", specifier = ">=2026.5.3" },
+    { name = "homeassistant", marker = "extra == 'ha'", specifier = ">=2026.5.2" },
     { name = "pyyaml" },
 ]
 provides-extras = ["ha"]
