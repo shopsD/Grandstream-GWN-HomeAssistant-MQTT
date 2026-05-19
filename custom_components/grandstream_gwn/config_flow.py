@@ -42,6 +42,7 @@ class FlowData:
     gwn_client: GwnClient | None = None
     data: dict[str, Any] = field(default_factory=dict)
     errors: dict[str, str] = field(default_factory=dict)
+    user_input: dict[str, Any] = field(default_factory=dict)
     authenticated: bool = False
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -63,13 +64,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def build_and_validate_config(flow_id: str, user_input: dict[str, Any] | None = None, previous_username: str | None = None, previous_password: str | None = None) -> FlowData:
         errors: dict[str, str] = {}
         if user_input is not None:
-            gwn_config: GwnConfig = GwnConfig(
-                app_id=str(user_input[APP_ID_CONFIG_KEY]),
-                secret_key=str(user_input[SECRET_KEY_CONFIG_KEY])
-            )
+
             data: dict[str, Any] = {
-                APP_ID_CONFIG_KEY: gwn_config.app_id,
-                SECRET_KEY_CONFIG_KEY: gwn_config.secret_key,
+                APP_ID_CONFIG_KEY: str(user_input[APP_ID_CONFIG_KEY]),
+                SECRET_KEY_CONFIG_KEY: str(user_input[SECRET_KEY_CONFIG_KEY]),
                 FLOW_ID_KEY: flow_id
             }
 
@@ -78,23 +76,20 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if int(page_size) < 1:
                     errors[PAGE_SIZE_CONFIG_KEY] = "required_ge_1"
                 else:
-                    gwn_config.page_size = int(page_size)
-                    data[PAGE_SIZE_CONFIG_KEY] = gwn_config.page_size
+                    data[PAGE_SIZE_CONFIG_KEY] = int(page_size)
 
             max_pages = user_input.get(MAX_PAGES_CONFIG_KEY)
             if max_pages is not None:
                 if int(max_pages) < 0:
                     errors[MAX_PAGES_CONFIG_KEY] = "required_ge_0"
                 else:
-                    gwn_config.max_pages = int(max_pages)
-                    data[MAX_PAGES_CONFIG_KEY] = gwn_config.max_pages
+                    data[MAX_PAGES_CONFIG_KEY] = int(max_pages)
             refresh_period_s = user_input.get(REFRESH_PERIOD_S_CONFIG_KEY)
             if refresh_period_s is not None:
                 if int(refresh_period_s) < 0:
                     errors[REFRESH_PERIOD_S_CONFIG_KEY] = "required_ge_0"
                 else:
-                    gwn_config.refresh_period_s = int(refresh_period_s)
-                    data[REFRESH_PERIOD_S_CONFIG_KEY] = gwn_config.refresh_period_s
+                    data[REFRESH_PERIOD_S_CONFIG_KEY] = int(refresh_period_s)
 
             username = user_input.get(USERNAME_CONFIG_KEY)
             password = user_input.get(PASSWORD_CONFIG_KEY)
@@ -116,97 +111,87 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             elif has_password and not has_username:
                 errors[USERNAME_CONFIG_KEY] = "username_missing"
             elif has_password and has_username:
-                gwn_config.username = str(username)
-                gwn_config.password = GwnConfig.hash_password(str(password)) if hash_password else password
-                data[USERNAME_CONFIG_KEY] = gwn_config.username
-                data[PASSWORD_CONFIG_KEY] = gwn_config.password
+                data[USERNAME_CONFIG_KEY] = str(username)
+                data[PASSWORD_CONFIG_KEY] = GwnConfig.hash_password(str(password)) if hash_password else password
 
             restricted_api = user_input.get(RESTRICTED_API_CONFIG_KEY)
             if restricted_api is not None and bool(restricted_api):
                 if not has_username or not has_password:
                     errors[RESTRICTED_API_CONFIG_KEY] = "requires_username_password"
                 else:
-                    gwn_config.restricted_api = bool(restricted_api)
-                    data[RESTRICTED_API_CONFIG_KEY] = gwn_config.restricted_api
+                    data[RESTRICTED_API_CONFIG_KEY] = bool(restricted_api)
 
             exclude_passphrase = user_input.get(EXCLUDE_PASSPHRASE_CONFIG_KEY)
             if ConfigFlow._check_numeric_list(exclude_passphrase):
-                gwn_config.exclude_passphrase = GwnLibInterface.parse_int_list(exclude_passphrase)
-                data[EXCLUDE_PASSPHRASE_CONFIG_KEY] = gwn_config.exclude_passphrase
+                data[EXCLUDE_PASSPHRASE_CONFIG_KEY] = GwnLibInterface.parse_int_list(exclude_passphrase)
             else:
                 errors[EXCLUDE_PASSPHRASE_CONFIG_KEY] = "comma_separated_numbers"
 
             exclude_ssid = user_input.get(EXCLUDE_SSID_CONFIG_KEY)
             if ConfigFlow._check_numeric_list(exclude_ssid):
-                gwn_config.exclude_ssid = GwnLibInterface.parse_int_list(exclude_ssid)
-                data[EXCLUDE_SSID_CONFIG_KEY] = gwn_config.exclude_ssid
+                data[EXCLUDE_SSID_CONFIG_KEY] = GwnLibInterface.parse_int_list(exclude_ssid)
             else:
                 errors[EXCLUDE_SSID_CONFIG_KEY] = "comma_separated_numbers"
 
             exclude_device = user_input.get(EXCLUDE_DEVICE_CONFIG_KEY)
             if ConfigFlow._check_mac_list(exclude_device):
-                gwn_config.exclude_device = GwnLibInterface.parse_str_list(exclude_device)
-                data[EXCLUDE_DEVICE_CONFIG_KEY] = gwn_config.exclude_device
+                data[EXCLUDE_DEVICE_CONFIG_KEY] = GwnLibInterface.parse_str_list(exclude_device)
             else:
                 errors[EXCLUDE_DEVICE_CONFIG_KEY] = "comma_separated_macs"
 
             exclude_network = user_input.get(EXCLUDE_NETWORK_CONFIG_KEY)
             if ConfigFlow._check_numeric_list(exclude_network):
-                gwn_config.exclude_network = GwnLibInterface.parse_int_list(exclude_network)
-                data[EXCLUDE_NETWORK_CONFIG_KEY] = gwn_config.exclude_network
+                data[EXCLUDE_NETWORK_CONFIG_KEY] = GwnLibInterface.parse_int_list(exclude_network)
             else:
                 errors[EXCLUDE_NETWORK_CONFIG_KEY] = "comma_separated_numbers"
 
             base_url = user_input.get(BASE_URL_CONFIG_KEY)
             if base_url is not None:
-                gwn_config.base_url = str(base_url)
-                data[BASE_URL_CONFIG_KEY] = gwn_config.base_url
+                data[BASE_URL_CONFIG_KEY] = str(base_url)
 
             ignore_failed_fetch_before_update = user_input.get(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY)
             if ignore_failed_fetch_before_update is not None:
-                gwn_config.ignore_failed_fetch_before_update = bool(ignore_failed_fetch_before_update)
-                data[IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY] = gwn_config.ignore_failed_fetch_before_update
+                data[IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY] = bool(ignore_failed_fetch_before_update)
 
             ssid_name_to_device_binding = user_input.get(SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY)
             if ssid_name_to_device_binding is not None:
-                gwn_config.ssid_name_to_device_binding = bool(ssid_name_to_device_binding)
-                data[SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY] = gwn_config.ssid_name_to_device_binding
+                data[SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY] = bool(ssid_name_to_device_binding)
 
             no_publish = user_input.get(NO_PUBLISH_CONFIG_KEY)
             if no_publish is not None:
-                gwn_config.no_publish = bool(no_publish)
-                data[NO_PUBLISH_CONFIG_KEY] = gwn_config.no_publish
+                data[NO_PUBLISH_CONFIG_KEY] = bool(no_publish)
             if len(errors) == 0:
-                gwn_client: GwnClient = GwnClient(gwn_config)
+                gwn_config: GwnConfig = GwnLibInterface.build_gwn_config(data)
+                gwn_client: GwnClient = GwnClient(gwn_config) # prevent a double login so preserve the client if the authentication succeeds
                 if await gwn_client.authenticate():
-                   return FlowData(gwn_config=gwn_config, gwn_client=gwn_client, data=data, authenticated=True)
+                   return FlowData(gwn_config=gwn_config, gwn_client=gwn_client, data=data, user_input=dict(user_input), authenticated=True)
                 await gwn_client.close()
                 errors["base"] = "user_pass_authentication_failed" if gwn_client.api_authenticated else "api_authentication_failed"
-            return FlowData(gwn_config=gwn_config, data=data, errors=errors)
+            return FlowData(data=data, user_input=dict(user_input), errors=errors)
         return FlowData()
 
     @staticmethod
-    def create_config_schema(defaults: GwnConfig | None = None) -> vol.Schema:
-        if defaults is None:
-            defaults = GwnConfig("", "")
+    def create_config_schema(input_overrides: dict[str, Any] | None = None) -> vol.Schema:
+        defaults: GwnConfig = GwnLibInterface.build_gwn_config(input_overrides) if input_overrides is not None else GwnConfig("", "")
+
         return vol.Schema(
             {
-                vol.Required(APP_ID_CONFIG_KEY, default=defaults.app_id): str,
-                vol.Required(SECRET_KEY_CONFIG_KEY, default=defaults.secret_key): str,
-                vol.Optional(RESTRICTED_API_CONFIG_KEY, default=defaults.restricted_api): bool,
-                vol.Optional(USERNAME_CONFIG_KEY, default=defaults.username if defaults.username is not None else ""): str,
+                vol.Required(APP_ID_CONFIG_KEY, default= defaults.app_id): str,
+                vol.Required(SECRET_KEY_CONFIG_KEY, default= defaults.secret_key): str,
+                vol.Optional(RESTRICTED_API_CONFIG_KEY, default= defaults.restricted_api): bool,
+                vol.Optional(USERNAME_CONFIG_KEY, default= defaults.username if defaults.username is not None else ""): str,
                 vol.Optional(PASSWORD_CONFIG_KEY, default=""): str,
-                vol.Optional(BASE_URL_CONFIG_KEY, default=defaults.base_url): str,
-                vol.Optional(PAGE_SIZE_CONFIG_KEY, default=defaults.page_size): int,
-                vol.Optional(MAX_PAGES_CONFIG_KEY, default=defaults.max_pages): int,
-                vol.Optional(REFRESH_PERIOD_S_CONFIG_KEY, default=defaults.refresh_period_s): int,
-                vol.Optional(EXCLUDE_PASSPHRASE_CONFIG_KEY, default=",".join(str(id) for id in defaults.exclude_passphrase)): str,
-                vol.Optional(EXCLUDE_SSID_CONFIG_KEY, default=",".join(str(id) for id in defaults.exclude_ssid)): str,
-                vol.Optional(EXCLUDE_DEVICE_CONFIG_KEY, default=",".join(defaults.exclude_device)): str,
-                vol.Optional(EXCLUDE_NETWORK_CONFIG_KEY, default=",".join(str(id) for id in defaults.exclude_network)): str,
-                vol.Optional(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY, default=defaults.ignore_failed_fetch_before_update): bool,
-                vol.Optional(SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY, default=defaults.ssid_name_to_device_binding): bool,
-                vol.Optional(NO_PUBLISH_CONFIG_KEY, default=defaults.no_publish): bool
+                vol.Optional(BASE_URL_CONFIG_KEY, default= defaults.base_url): str,
+                vol.Optional(PAGE_SIZE_CONFIG_KEY, default= defaults.page_size): int,
+                vol.Optional(MAX_PAGES_CONFIG_KEY, default= defaults.max_pages): int,
+                vol.Optional(REFRESH_PERIOD_S_CONFIG_KEY, default= defaults.refresh_period_s): int,
+                vol.Optional(EXCLUDE_PASSPHRASE_CONFIG_KEY, default= ",".join(str(id) for id in defaults.exclude_passphrase)): str,
+                vol.Optional(EXCLUDE_SSID_CONFIG_KEY, default= ",".join(str(id) for id in defaults.exclude_ssid)): str,
+                vol.Optional(EXCLUDE_DEVICE_CONFIG_KEY, default= ",".join(defaults.exclude_device)): str,
+                vol.Optional(EXCLUDE_NETWORK_CONFIG_KEY, default= ",".join(str(id) for id in defaults.exclude_network)): str,
+                vol.Optional(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY, default= defaults.ignore_failed_fetch_before_update): bool,
+                vol.Optional(SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY, default= defaults.ssid_name_to_device_binding): bool,
+                vol.Optional(NO_PUBLISH_CONFIG_KEY, default= defaults.no_publish): bool
             }
         )
 
@@ -220,7 +205,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self.hass.data[DOMAIN][CLIENT_CONFIG_KEY][self.flow_id] = {CLIENT_KEY: flow_data.gwn_client, CONFIG_KEY: flow_data.gwn_config}
                 return self.async_create_entry(title=flow_data.gwn_config.base_url, data=flow_data.data)
 
-            return self.async_show_form(step_id="user", data_schema=ConfigFlow.create_config_schema(flow_data.gwn_config), errors=flow_data.errors)
+            return self.async_show_form(step_id="user", data_schema=ConfigFlow.create_config_schema(flow_data.user_input), errors=flow_data.errors)
         return self.async_show_form(step_id="user", data_schema=ConfigFlow.create_config_schema(), errors={})
 
     @staticmethod
@@ -235,11 +220,11 @@ class OptionsFlowHandler(OptionsFlow):
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         current_data: dict[str, Any] = dict(self._config_entry.data)
         flow_id: str = str(current_data.get(FLOW_ID_KEY, self._config_entry.entry_id))
-        current_config: GwnConfig = GwnLibInterface.build_gwn_config(self._config_entry)
-        previous_password: str| None = current_config.password
-        current_config.password = ""
+        current_config: GwnConfig = GwnLibInterface.build_gwn_config(current_data)
+        previous_password: str | None = current_config.password
+        previous_username: str | None = current_config.username
         if user_input is not None:
-            flow_data: FlowData = await ConfigFlow.build_and_validate_config(flow_id, user_input, current_config.username, previous_password)
+            flow_data: FlowData = await ConfigFlow.build_and_validate_config(flow_id, user_input, previous_username, previous_password)
 
             if flow_data.authenticated:
                 self.hass.data.setdefault(DOMAIN, {})
@@ -250,7 +235,5 @@ class OptionsFlowHandler(OptionsFlow):
                 await self.hass.config_entries.async_reload(self._config_entry.entry_id)
                 return self.async_create_entry(title="", data={})
 
-            failed_config: GwnConfig = current_config if flow_data.gwn_config is None else flow_data.gwn_config
-            failed_config.password = "" # the password has been hashed so dont show it again
-            return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(failed_config), errors=flow_data.errors)
-        return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(current_config), errors={})
+            return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(flow_data.user_input), errors=flow_data.errors)
+        return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(current_data), errors={})

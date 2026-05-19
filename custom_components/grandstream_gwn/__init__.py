@@ -23,7 +23,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         gwn_config = client_config[CONFIG_KEY]
         gwn_client = client_config[CLIENT_KEY]
     else:
-        gwn_config = GwnLibInterface.build_gwn_config(entry)
+        gwn_config = GwnLibInterface.build_gwn_config(dict(entry.data))
         gwn_client = GwnClient(gwn_config)
 
     coordinator: GwnDataUpdateCoordinator = GwnDataUpdateCoordinator(hass, entry, gwn_config, gwn_client)

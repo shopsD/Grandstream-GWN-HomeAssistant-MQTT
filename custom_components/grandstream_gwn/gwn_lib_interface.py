@@ -1,5 +1,23 @@
-from homeassistant.config_entries import ConfigEntry
+from typing import Any
 
+from .const import (
+    APP_ID_CONFIG_KEY,
+    BASE_URL_CONFIG_KEY,
+    EXCLUDE_DEVICE_CONFIG_KEY,
+    EXCLUDE_NETWORK_CONFIG_KEY,
+    EXCLUDE_PASSPHRASE_CONFIG_KEY,
+    EXCLUDE_SSID_CONFIG_KEY,
+    IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY,
+    MAX_PAGES_CONFIG_KEY,
+    NO_PUBLISH_CONFIG_KEY,
+    PAGE_SIZE_CONFIG_KEY,
+    PASSWORD_CONFIG_KEY,
+    REFRESH_PERIOD_S_CONFIG_KEY,
+    RESTRICTED_API_CONFIG_KEY,
+    SECRET_KEY_CONFIG_KEY,
+    SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY,
+    USERNAME_CONFIG_KEY
+)
 from gwn.authentication import GwnConfig
 
 class GwnLibInterface:
@@ -21,49 +39,48 @@ class GwnLibInterface:
         return [GwnConfig.normalise_mac(item.strip()) for item in value.split(",") if item.strip()]
 
     @staticmethod
-    def build_gwn_config(entry: ConfigEntry) -> GwnConfig:
-        data = entry.data
-        gwn_config: GwnConfig = GwnConfig(app_id=str(data["app_id"]), secret_key=str(data["secret_key"]))
-        restricted_api = data.get("restricted_api")
+    def build_gwn_config(data: dict[str, Any]) -> GwnConfig:
+        gwn_config: GwnConfig = GwnConfig(app_id=str(data[APP_ID_CONFIG_KEY]), secret_key=str(data[SECRET_KEY_CONFIG_KEY]))
+        restricted_api = data.get(RESTRICTED_API_CONFIG_KEY)
         if restricted_api is not None:
             gwn_config.restricted_api = bool(restricted_api)
-        username = data.get("username")
+        username = data.get(USERNAME_CONFIG_KEY)
         if username is not None:
             gwn_config.username = str(username)
-        password = data.get("password")
+        password = data.get(PASSWORD_CONFIG_KEY)
         if password not in (None, ""):
             gwn_config.password = str(password)
-        base_url = data.get("base_url")
+        base_url = data.get(BASE_URL_CONFIG_KEY)
         if base_url is not None:
             gwn_config.base_url = str(base_url)
-        page_size = data.get("page_size")
+        page_size = data.get(PAGE_SIZE_CONFIG_KEY)
         if page_size is not None:
             gwn_config.page_size = int(page_size)
-        max_pages = data.get("max_pages")
+        max_pages = data.get(MAX_PAGES_CONFIG_KEY)
         if max_pages is not None:
             gwn_config.max_pages = int(max_pages)
-        refresh_period_s = data.get("refresh_period_s")
+        refresh_period_s = data.get(REFRESH_PERIOD_S_CONFIG_KEY)
         if refresh_period_s is not None:
             gwn_config.refresh_period_s = int(refresh_period_s)
-        exclude_passphrase = data.get("exclude_passphrase")
+        exclude_passphrase = data.get(EXCLUDE_PASSPHRASE_CONFIG_KEY)
         if exclude_passphrase is not None:
-            gwn_config.exclude_passphrase = GwnLibInterface.parse_int_list(data.get("exclude_passphrase"))
-        exclude_ssid = data.get("exclude_ssid")
+            gwn_config.exclude_passphrase = GwnLibInterface.parse_int_list(data.get(EXCLUDE_PASSPHRASE_CONFIG_KEY))
+        exclude_ssid = data.get(EXCLUDE_SSID_CONFIG_KEY)
         if exclude_ssid is not None:
-            gwn_config.exclude_ssid = GwnLibInterface.parse_int_list(data.get("exclude_ssid"))
-        exclude_device = data.get("exclude_device")
+            gwn_config.exclude_ssid = GwnLibInterface.parse_int_list(data.get(EXCLUDE_SSID_CONFIG_KEY))
+        exclude_device = data.get(EXCLUDE_DEVICE_CONFIG_KEY)
         if exclude_device is not None:
             gwn_config.exclude_device = [GwnConfig.normalise_mac(mac) for mac in GwnLibInterface.parse_str_list(exclude_device)]
-        exclude_network = data.get("exclude_network")
+        exclude_network = data.get(EXCLUDE_NETWORK_CONFIG_KEY)
         if exclude_network is not None:
-            gwn_config.exclude_network = GwnLibInterface.parse_int_list(data.get("exclude_network"))
-        ignore_failed_fetch_before_update = data.get("ignore_failed_fetch_before_update")
+            gwn_config.exclude_network = GwnLibInterface.parse_int_list(data.get(EXCLUDE_NETWORK_CONFIG_KEY))
+        ignore_failed_fetch_before_update = data.get(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY)
         if ignore_failed_fetch_before_update is not None:
             gwn_config.ignore_failed_fetch_before_update = bool(ignore_failed_fetch_before_update)
-        ssid_name_to_device_binding = data.get("ssid_name_to_device_binding")
+        ssid_name_to_device_binding = data.get(SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY)
         if ssid_name_to_device_binding is not None:
             gwn_config.ssid_name_to_device_binding = bool(ssid_name_to_device_binding)
-        no_publish = data.get("no_publish")
+        no_publish = data.get(NO_PUBLISH_CONFIG_KEY)
         if no_publish is not None:
             gwn_config.no_publish = bool(no_publish)
         return gwn_config
