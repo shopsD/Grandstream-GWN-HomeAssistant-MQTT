@@ -125,7 +125,7 @@ class GwnClient:
                         mac=mac,
                         name=basic_info["name"],
                         ip=basic_info["ipv4"] if basic_info["ipv4"] is not None else basic_info["ip"],
-                        last_boot= dt.datetime.now(dt.UTC) - dt.timedelta(seconds=int(basic_info["upTime"].replace("s","").strip())),
+                        last_boot=dt.datetime.now(dt.UTC) - dt.timedelta(seconds=int(basic_info["upTime"])),
                         usage_bytes=int(basic_info["usage"]),
                         upload_bytes=int(basic_info["upload"]),
                         download_bytes=int(basic_info["download"]),
