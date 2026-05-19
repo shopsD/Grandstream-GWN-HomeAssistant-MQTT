@@ -125,7 +125,7 @@ class GwnClient:
                         mac=mac,
                         name=basic_info["name"],
                         ip=basic_info["ipv4"] if basic_info["ipv4"] is not None else basic_info["ip"],
-                        last_boot=dt.datetime.now(dt.UTC) - dt.timedelta(seconds=int(basic_info["upTime"])),
+                        last_boot=(dt.datetime.now(dt.UTC) - dt.timedelta(seconds=int(basic_info["upTime"]))).replace(second=0, microsecond=0),
                         usage_bytes=int(basic_info["usage"]),
                         upload_bytes=int(basic_info["upload"]),
                         download_bytes=int(basic_info["download"]),
@@ -152,7 +152,7 @@ class GwnClient:
                         temperature_c=int(config_info_client["temperature"].replace("℃", "").replace("°C", "").strip()),
                         usedMemory_bytes=self._size_to_bytes(config_info_client["usedMemory"]),
                         channelload_2g4_percent=int(config_info_client["channelload_2g4"]) if config_info_client["channelload_2g4"] is not None else 0,
-                        cpuUsage_percent=float(config_info_client["cpuUsage"].replace("%","").strip()) if config_info_client["cpuUsage"] is not None else 0,
+                        cpuUsage_percent=int(config_info_client["cpuUsage"].replace("%","").strip()) if config_info_client["cpuUsage"] is not None else 0,
                         channelload_6g_percent=int(config_info_client["channelload_6g"]) if config_info_client["channelload_6g"] is not None else 0,
                         channelload_5g_percent=int(config_info_client["channelload_5g"]) if config_info_client["channelload_5g"] is not None else 0,
 
