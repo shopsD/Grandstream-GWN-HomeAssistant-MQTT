@@ -158,9 +158,9 @@ The recommended way of installing the integration is via [HACS](https://www.hacs
 
 1. If you download the pre-packaged archive from the release go to Skip to Step 4
 2. Clone the repository and `cd` into the repository root
-3. Run the command `python3 meta_data/configure_hacs.py` 
+3. Run the command `python3 meta_data/configure_hacs.py`
 4. Rename the folder `dist/hacs` to `grandstream_gwn` then proceed to Step 7
-5. Download the pre-packaged archive (`grandstream_gwn.zip`) from the releases page of Github 
+5. Download the pre-packaged archive (`grandstream_gwn.zip`) from the releases page of Github
 6. Extract the archive contents to a folder called `grandstream_gwn`
 7. Copy the folder `grandstream_gwn` to your `homeassistant/custom_components/` directory
 8. Restart Home Assistant

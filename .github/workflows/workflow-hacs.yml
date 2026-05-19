@@ -41,7 +41,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-        python-version: ${{ steps.meta.outputs.python_version }}
+          python-version: ${{ steps.meta.outputs.python_version }}
 
       - name: Prepare HACS archive
         run: |
