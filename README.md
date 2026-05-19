@@ -14,8 +14,6 @@ GG-HAM (Grandstream GWN - Home Assistant/MQTT) is a project created for the desi
 
 It is made up of a Library, an MQTT Bridge application with support for Home Assistant Discovery and a Home Assistant Integration. This tool is not endorsed, affiliated nor supported by Grandstream.
 
-The MQTT bridge is the primary working application in this repository. The native Home Assistant custom component is present as a workspace/scaffold, but the MQTT bridge is currently the main implementation path.
-
 ## Project Overview
 
 | Path | Purpose |
@@ -33,16 +31,6 @@ The different components have different licenses as shown below
 | `gwn` | MPL-2.0 |
 | `mqtt` | BSD-3-Clause |
 | `custom_components/grandstream_gwn` | BSD-3-Clause |
-
-## GWN MQTT Bridge
-
-The MQTT bridge does five jobs:
-
-1. Authenticates with GWN Manager using `app_id` and `secret_key`.
-2. Optionally performs the username/password browser-style login for richer device, SSID, and edit payload data.
-3. Publishes retained MQTT state for the bridge application, networks, devices, and SSIDs.
-4. Publishes optional Home Assistant MQTT discovery payloads.
-5. Listens for MQTT commands and forwards supported updates back to GWN Manager.
 
 ## Requirements
 
@@ -95,8 +83,7 @@ The subset tested permissions for the role are
   - System
     - Configure System
 
-
-## Install
+## Setup
 
 Install `uv` if it is not already available:
 
@@ -122,11 +109,80 @@ If you are working on the home assistant integration then run this command
 uv sync --extra ha --dev
 ```
 
-Build the Python package:
+# GWN Library
 
-```bash
-uv build
-```
+The GWN Library is a standalone package that can be used for interacting with the GWN Manager.
+All classes are designed to be accessible by the calling application, though `api/GwnInterface.py` and `authentication/GwnToken.py` are primarily used by the library internals
+
+- `GwnClient` serves as the main interface to the library
+
+## Library Configuration Options
+
+The library contains a `GwnConfig` class which must be pre-populated and passed to the `GwnClient` prior to attempting to authenticate or make any calls to the `GwnManager`. The configuration options are as below
+
+| Field | Required | Default | Behaviour |
+| --- | --- | --- | --- |
+| `app_id` | Yes | None | GWN Manager application ID. |
+| `secret_key` | Yes | None | GWN Manager secret key. |
+| `url` | No | `https://localhost:8443` | Base URL for GWN Manager. |
+| `username` | No | `null` | Optional GWN Manager username for browser-style login. Must be supplied with `password` otherwise the library will be in `read_only` mode. |
+| `password` | No | `null` | Pre-Hashed GWN Manager password. A hash can be acquired by calling `GwnConfig.hash_password(plaintext_password)`. Must be supplied with `username` otherwise the library will be in `read_only` mode |
+| `page_size` | No | `10` | Page size for paginated GWN API requests. Must be `>= 1`. |
+| `max_pages` | No | `0` | Maximum pages to request. `0` means unlimited. Must be `>= 0`. |
+| `refresh_period_s` | No | `30` | Poll interval in seconds. Must be `>= 0`. |
+| `exclude_passphrase` | No | `[]` | SSID IDs whose passphrase should not be exposed. The library will set the value to `None` for any SSIDs that match the list. |
+| `exclude_ssid` | No | `[]` | SSID IDs to exclude entirely. |
+| `exclude_device` | No | `[]` | Device MAC addresses to exclude entirely. |
+| `exclude_network` | No | `[]` | Network IDs to exclude entirely. |
+| `ignore_failed_fetch_before_update` | No | `false` | Controls whether writes continue when the pre-update fetch fails. |
+| `ssid_name_to_device_binding` | No | `true` | Allows SSID-to-device assignment display by matching SSID names when username/password login is unavailable. Ignored when username/password login is available. |
+| `no_publish` | No | `false` | Polls GWN Manager but does not send write commands back to GWN Manager. Useful for debug/dry-run style testing. |
+
+# Home Assistant Integration
+
+The Home Assistant Integration is designed to be easy to setup and configure
+
+## Installation
+### HACS
+
+The recommended way of installing the integration is via [HACS](https://www.hacs.xyz)
+
+1. In HACS click `Custom Repositories`
+2. Add the following values
+  - Repository: `https://github.com/shopsD/homeassistant-grandstream-gwn`
+  - Type: `Integration`
+3. Search for `Grandstream GWN Manager Bridge`
+4. Click `Download`
+
+### Manual
+
+1. If you download the pre-packaged archive from the release go to Skip to Step 4
+2. Clone the repository and `cd` into the repository root
+3. Run the command `python3 meta_data/configure_hacs.py` 
+4. Rename the folder `dist/hacs` to `grandstream_gwn` then proceed to Step 7
+5. Download the pre-packaged archive (`grandstream_gwn.zip`) from the releases page of Github 
+6. Extract the archive contents to a folder called `grandstream_gwn`
+7. Copy the folder `grandstream_gwn` to your `homeassistant/custom_components/` directory
+8. Restart Home Assistant
+9. In Home Assistant, go to `Settings`->`Integrations`->`Add integration`
+10. Search for `Grandstream GWN Manager Bridge` and configure the integration per the [Library Configuration Options](#library-configuration-options)
+
+## Uninstallation
+
+1. Under `Settings->Integrations` search for `Grandstream GWN Manager Bridge` delete all your configurations
+2. If using HACS search for `Grandstream GWN Manager Bridge` -> Click the 3 dots on the entry then click `Remove`
+3. If not using HACS delete the folder `homeassistant/custom_components/grandstream_gwn`
+4. Restart Home Assistant
+
+# GWN MQTT Bridge
+
+The MQTT bridge does five jobs:
+
+1. Authenticates with GWN Manager using `app_id` and `secret_key`.
+2. Optionally performs the username/password browser-style login for richer device, SSID, and edit payload data.
+3. Publishes retained MQTT state for the bridge application, networks, devices, and SSIDs.
+4. Publishes optional Home Assistant MQTT discovery payloads.
+5. Listens for MQTT commands and forwards supported updates back to GWN Manager.
 
 ## Run
 
@@ -168,6 +224,15 @@ uv run gwn_mqtt --password <plain-text-password>
 This hashes the provided value directly. The output can be used as `gwn.hashed_password` of the config.
 
 This hash is fast and unsalted, so treat it as sensitive and do not expose it.
+
+### Python Wheel
+
+To create a wheel for the application, run
+Build the Python package:
+
+```bash
+uv build
+```
 
 ### Docker
 
@@ -409,24 +474,12 @@ device_name_override:
 
 ## `gwn` Config
 
+For the full list of options, refer to [Library Configuration Options](#library-configuration-options)
+
 | Field | Required | Default | Behaviour |
 | --- | --- | --- | --- |
-| `app_id` | Yes | None | GWN Manager application ID. |
-| `secret_key` | Yes | None | GWN Manager secret key. |
-| `url` | No | `https://localhost:8443` | Base URL for GWN Manager. |
-| `username` | No | `null` | Optional GWN Manager username for browser-style login. Must be supplied with `password` or `hashed_password`. |
 | `password` | No | `null` | Plaintext GWN Manager password. The app hashes it before use. Cannot be supplied with `hashed_password`. |
 | `hashed_password` | No | `null` | Pre-hashed GWN Manager password. Cannot be supplied with `password`. |
-| `page_size` | No | `10` | Page size for paginated GWN API requests. Must be `>= 1`. |
-| `max_pages` | No | `0` | Maximum pages to request. `0` means unlimited. Must be `>= 0`. |
-| `refresh_period_s` | No | `30` | Poll interval in seconds. Must be `>= 0`. |
-| `exclude_passphrase` | No | `[]` | SSID IDs whose passphrase should not be exposed. The library will set the value to `None` for any SSIDs that match the list. |
-| `exclude_ssid` | No | `[]` | SSID IDs to exclude entirely. |
-| `exclude_device` | No | `[]` | Device MAC addresses to exclude entirely. |
-| `exclude_network` | No | `[]` | Network IDs to exclude entirely. |
-| `ignore_failed_fetch_before_update` | No | `false` | Controls whether writes continue when the pre-update fetch fails. |
-| `ssid_name_to_device_binding` | No | `true` | Allows SSID-to-device assignment display by matching SSID names when username/password login is unavailable. Ignored when username/password login is available. |
-| `no_publish` | No | `false` | Polls GWN Manager but does not send write commands back to GWN Manager. Useful for debug/dry-run style testing. |
 
 ### GWN Username And Password Behaviour
 

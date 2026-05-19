@@ -87,8 +87,8 @@ def _rewrite_import_line(target_file: Path, match: re.Match[str]) -> str:
     return "\n".join(rewritten_lines)
 
 def _setup_directory_structure() -> None:
-    if archive_root.parent.exists() and archive_root.parent.is_dir():
-        shutil.rmtree(archive_root.parent)
+    if archive_root.exists() and archive_root.is_dir():
+        shutil.rmtree(archive_root)
     shutil.copytree(integration_root.resolve(), archive_root.resolve(), dirs_exist_ok=True, ignore=shutil.ignore_patterns(*ignore_patterns))
     shutil.copytree(library_root.resolve(), hacs_archive_root.resolve(), dirs_exist_ok=True, ignore=shutil.ignore_patterns(*ignore_patterns))
 
