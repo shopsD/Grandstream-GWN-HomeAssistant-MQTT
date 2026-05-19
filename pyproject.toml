@@ -24,7 +24,7 @@ dev = [
 ]
 
 [project.optional-dependencies]
-ha = ["homeassistant>=2026.5.3"]
+ha = ["homeassistant>=2026.5.2"]
 
 [tool.uv]
 package = true

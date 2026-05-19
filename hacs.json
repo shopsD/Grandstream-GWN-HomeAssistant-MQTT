@@ -2,7 +2,7 @@
     "name": "Grandstream GWN Manager Bridge",
     "zip_release": true,
     "hide_default_branch": true,
-    "homeassistant": "2026.5.3",
+    "homeassistant": "2026.5.2",
     "hacs": "2.0.0",
     "filename": "grandstream_gwn.zip"
 }
