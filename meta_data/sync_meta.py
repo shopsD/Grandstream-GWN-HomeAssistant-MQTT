@@ -18,7 +18,7 @@ def replace_or_fail(path: Path, pattern: str, repl: str, occurences: int = 1) ->
     text = path.read_text(encoding="utf-8")
     new_text, count = re.subn(pattern, repl, text, flags=re.MULTILINE)
     if count != occurences:
-        raise RuntimeError(f"Expected exactly {occurences} match{"es" if occurences > 1 else ""} in {path} for pattern: {pattern}")
+        raise RuntimeError(f"Expected exactly {occurences} match{"es" if occurences > 1 else ""} in {path} for pattern: {pattern}. Got {count}")
     path.write_text(new_text, encoding="utf-8")
 
 def main() -> None:
@@ -132,7 +132,7 @@ def main() -> None:
     )
     replace_or_fail(
         README,
-        r'^(\s*-\s+)([Ss])earch for\s+`[^`]+`(.*)$',
+        r'^(.+)([Ss])earch for\s+`[^`]+`(.*)$',
         rf'\1\2earch for `{INTEGRATION_NAME}`\3',
         4
     )
