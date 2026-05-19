@@ -172,26 +172,27 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     def create_config_schema(input_overrides: dict[str, Any] | None = None) -> vol.Schema:
-        defaults: GwnConfig = GwnLibInterface.build_gwn_config(input_overrides) if input_overrides is not None else GwnConfig("", "")
-
+        defaults: GwnConfig = GwnConfig("", "")
+        if input_overrides is None:
+            input_overrides = {}
         return vol.Schema(
             {
-                vol.Required(APP_ID_CONFIG_KEY, default= defaults.app_id): str,
-                vol.Required(SECRET_KEY_CONFIG_KEY, default= defaults.secret_key): str,
-                vol.Optional(RESTRICTED_API_CONFIG_KEY, default= defaults.restricted_api): bool,
-                vol.Optional(USERNAME_CONFIG_KEY, default= defaults.username if defaults.username is not None else ""): str,
+                vol.Required(APP_ID_CONFIG_KEY, default=input_overrides.get(APP_ID_CONFIG_KEY, defaults.app_id)): str,
+                vol.Required(SECRET_KEY_CONFIG_KEY, default=input_overrides.get(SECRET_KEY_CONFIG_KEY, defaults.secret_key)): str,
+                vol.Optional(RESTRICTED_API_CONFIG_KEY, default=input_overrides.get(RESTRICTED_API_CONFIG_KEY, defaults.restricted_api)): bool,
+                vol.Optional(USERNAME_CONFIG_KEY, default=input_overrides.get(USERNAME_CONFIG_KEY, defaults.username if defaults.username is not None else "")): str,
                 vol.Optional(PASSWORD_CONFIG_KEY, default=""): str,
-                vol.Optional(BASE_URL_CONFIG_KEY, default= defaults.base_url): str,
-                vol.Optional(PAGE_SIZE_CONFIG_KEY, default= defaults.page_size): int,
-                vol.Optional(MAX_PAGES_CONFIG_KEY, default= defaults.max_pages): int,
-                vol.Optional(REFRESH_PERIOD_S_CONFIG_KEY, default= defaults.refresh_period_s): int,
-                vol.Optional(EXCLUDE_PASSPHRASE_CONFIG_KEY, default= ",".join(str(id) for id in defaults.exclude_passphrase)): str,
-                vol.Optional(EXCLUDE_SSID_CONFIG_KEY, default= ",".join(str(id) for id in defaults.exclude_ssid)): str,
-                vol.Optional(EXCLUDE_DEVICE_CONFIG_KEY, default= ",".join(defaults.exclude_device)): str,
-                vol.Optional(EXCLUDE_NETWORK_CONFIG_KEY, default= ",".join(str(id) for id in defaults.exclude_network)): str,
-                vol.Optional(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY, default= defaults.ignore_failed_fetch_before_update): bool,
-                vol.Optional(SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY, default= defaults.ssid_name_to_device_binding): bool,
-                vol.Optional(NO_PUBLISH_CONFIG_KEY, default= defaults.no_publish): bool
+                vol.Optional(BASE_URL_CONFIG_KEY, default=input_overrides.get(BASE_URL_CONFIG_KEY, defaults.base_url)): str,
+                vol.Optional(PAGE_SIZE_CONFIG_KEY, default=input_overrides.get(PAGE_SIZE_CONFIG_KEY, defaults.page_size)): int,
+                vol.Optional(MAX_PAGES_CONFIG_KEY, default=input_overrides.get(MAX_PAGES_CONFIG_KEY, defaults.max_pages)): int,
+                vol.Optional(REFRESH_PERIOD_S_CONFIG_KEY, default=input_overrides.get(APP_ID_CONFIG_KEY, defaults.refresh_period_s)): int,
+                vol.Optional(EXCLUDE_PASSPHRASE_CONFIG_KEY, default=input_overrides.get(EXCLUDE_PASSPHRASE_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_passphrase))): str,
+                vol.Optional(EXCLUDE_SSID_CONFIG_KEY, default=input_overrides.get(EXCLUDE_SSID_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_ssid))): str,
+                vol.Optional(EXCLUDE_DEVICE_CONFIG_KEY, default=input_overrides.get(EXCLUDE_DEVICE_CONFIG_KEY, ",".join(defaults.exclude_device))): str,
+                vol.Optional(EXCLUDE_NETWORK_CONFIG_KEY, default=input_overrides.get(EXCLUDE_NETWORK_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_network))): str,
+                vol.Optional(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY, default=input_overrides.get(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY, defaults.ignore_failed_fetch_before_update)): bool,
+                vol.Optional(SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY, default=input_overrides.get(SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY, defaults.ssid_name_to_device_binding)): bool,
+                vol.Optional(NO_PUBLISH_CONFIG_KEY, default=input_overrides.get(NO_PUBLISH_CONFIG_KEY, defaults.no_publish)): bool
             }
         )
 

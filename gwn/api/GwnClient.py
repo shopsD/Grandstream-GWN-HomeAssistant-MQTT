@@ -115,7 +115,7 @@ class GwnClient:
                 config_info_client["g5"] = self._normalise_dictionary_data(config_info_client["g5"])
                 config_info_client["g6"] = self._normalise_dictionary_data(config_info_client["g6"])
                 mac: str = GwnConfig.normalise_mac(basic_info["mac"])
-                
+
                 # upTime appears to only change every 5 minutes so quantise now to a 5 minute anchor to prevent noise
                 now = dt.datetime.now(dt.UTC)
                 now = now.replace(second=0, microsecond=0)
