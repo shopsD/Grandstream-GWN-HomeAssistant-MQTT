@@ -5,13 +5,17 @@ from gwn.authentication import GwnConfig
 class GwnLibInterface:
 
     @staticmethod
-    def parse_int_list(value: str | None) -> list[int]:
+    def parse_int_list(value: str | list[int] | None) -> list[int]:
+        if isinstance(value, list):
+            return value
         if value is None or value.strip() == "":
             return []
         return [int(item.strip()) for item in value.split(",") if item.strip()]
 
     @staticmethod
-    def parse_str_list(value: str | None) -> list[str]:
+    def parse_str_list(value: str | list[str] | None) -> list[str]:
+        if isinstance(value, list):
+            return value
         if value is None or value.strip() == "":
             return []
         return [GwnConfig.normalise_mac(item.strip()) for item in value.split(",") if item.strip()]
