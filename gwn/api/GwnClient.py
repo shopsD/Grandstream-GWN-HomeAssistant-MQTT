@@ -114,8 +114,12 @@ class GwnClient:
                 config_info_client["g24"] = self._normalise_dictionary_data(config_info_client["g24"])
                 config_info_client["g5"] = self._normalise_dictionary_data(config_info_client["g5"])
                 config_info_client["g6"] = self._normalise_dictionary_data(config_info_client["g6"])
-
-                mac = GwnConfig.normalise_mac(basic_info["mac"])
+                mac: str = GwnConfig.normalise_mac(basic_info["mac"])
+                
+                # upTime appears to only change every 5 minutes so quantise now to a 5 minute anchor to prevent noise
+                now = dt.datetime.now(dt.UTC)
+                now = now.replace(second=0, microsecond=0)
+                now = now.replace(minute=(now.minute // 5) * 5)
                 if mac in self._config.exclude_device:
                     _LOGGER.debug(f"Ignoring Device: {mac}")
                 else:
@@ -125,7 +129,7 @@ class GwnClient:
                         mac=mac,
                         name=basic_info["name"],
                         ip=basic_info["ipv4"] if basic_info["ipv4"] is not None else basic_info["ip"],
-                        last_boot=(dt.datetime.now(dt.UTC) - dt.timedelta(seconds=int(basic_info["upTime"]))).replace(second=0, microsecond=0),
+                        last_boot=now - dt.timedelta(seconds=int(basic_info["upTime"])),
                         usage_bytes=int(basic_info["usage"]),
                         upload_bytes=int(basic_info["upload"]),
                         download_bytes=int(basic_info["download"]),

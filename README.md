@@ -68,8 +68,8 @@ The subset tested permissions for the role are
     - Configure LAN
     - Configure Global Switch Settings
   - Internet
-    - Configure WAN
-    - Configure Internet Source
+    - WAN (Read-only)
+    - Internet Source (Read-only)
   - Profiles
     - Portal Policy (Read-only)
     - Port Profile (read-only)
@@ -80,8 +80,6 @@ The subset tested permissions for the role are
     - PPSK (Read-only)
     - Client Time Policy (Read-only)
     - Hotspot 2.0 (Read-only)
-  - System
-    - Configure System
 
 ## Setup
 
