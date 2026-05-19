@@ -5,7 +5,7 @@
             "required_ge_0": "Must be greater than or equal to 0",
             "password_missing": "Password is missing",
             "username_missing": "Username is missing",
-            "requires_username_password": "requires username and password to be set",
+            "requires_username_password": "Requires username and password to be set",
             "comma_separated_numbers": "Must be a comma-separated list of numbers",
             "comma_separated_macs": "Must be a comma-separated list of MAC Addresses",
             "user_pass_authentication_failed": "Username/Password Authentication Failed",

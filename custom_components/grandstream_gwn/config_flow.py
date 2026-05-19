@@ -112,9 +112,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 password = previous_password
             
             if has_username and not has_password:
-                errors[PASSWORD_CONFIG_KEY] = "required_with_username"
+                errors[PASSWORD_CONFIG_KEY] = "password_missing"
             elif has_password and not has_username:
-                errors[USERNAME_CONFIG_KEY] = "required_with_password"
+                errors[USERNAME_CONFIG_KEY] = "username_missing"
             elif has_password and has_username:
                 gwn_config.username = str(username)
                 gwn_config.password = GwnConfig.hash_password(str(password)) if hash_password else password
@@ -124,7 +124,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             restricted_api = user_input.get(RESTRICTED_API_CONFIG_KEY)
             if restricted_api is not None and bool(restricted_api):
                 if not has_username or not has_password:
-                    errors[RESTRICTED_API_CONFIG_KEY] = "requires_password_username"
+                    errors[RESTRICTED_API_CONFIG_KEY] = "requires_username_password"
                 else:
                     gwn_config.restricted_api = bool(restricted_api)
                     data[RESTRICTED_API_CONFIG_KEY] = gwn_config.restricted_api
@@ -134,28 +134,28 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 gwn_config.exclude_passphrase = GwnLibInterface.parse_int_list(exclude_passphrase)
                 data[EXCLUDE_PASSPHRASE_CONFIG_KEY] = gwn_config.exclude_passphrase
             else:
-                errors[EXCLUDE_PASSPHRASE_CONFIG_KEY] = "not_list_of_ints"
+                errors[EXCLUDE_PASSPHRASE_CONFIG_KEY] = "comma_separated_numbers"
 
             exclude_ssid = user_input.get(EXCLUDE_SSID_CONFIG_KEY)
             if ConfigFlow._check_numeric_list(exclude_ssid):
                 gwn_config.exclude_ssid = GwnLibInterface.parse_int_list(exclude_ssid)
                 data[EXCLUDE_SSID_CONFIG_KEY] = gwn_config.exclude_ssid
             else:
-                errors[EXCLUDE_SSID_CONFIG_KEY] = "not_list_of_ints"
+                errors[EXCLUDE_SSID_CONFIG_KEY] = "comma_separated_numbers"
 
             exclude_device = user_input.get(EXCLUDE_DEVICE_CONFIG_KEY)
             if ConfigFlow._check_mac_list(exclude_device):
                 gwn_config.exclude_device = GwnLibInterface.parse_str_list(exclude_device)
                 data[EXCLUDE_DEVICE_CONFIG_KEY] = gwn_config.exclude_device
             else:
-                errors[EXCLUDE_DEVICE_CONFIG_KEY] = "not_list_of_macs"
+                errors[EXCLUDE_DEVICE_CONFIG_KEY] = "comma_separated_macs"
 
             exclude_network = user_input.get(EXCLUDE_NETWORK_CONFIG_KEY)
             if ConfigFlow._check_numeric_list(exclude_network):
                 gwn_config.exclude_network = GwnLibInterface.parse_int_list(exclude_network)
                 data[EXCLUDE_NETWORK_CONFIG_KEY] = gwn_config.exclude_network
             else:
-                errors[EXCLUDE_NETWORK_CONFIG_KEY] = "not_list_of_ints"
+                errors[EXCLUDE_NETWORK_CONFIG_KEY] = "comma_separated_numbers"
 
             base_url = user_input.get(BASE_URL_CONFIG_KEY)
             if base_url is not None:
