@@ -164,7 +164,7 @@ class GwnDeviceSensor(GwnSensorEntity):
             self._attr_native_unit_of_measurement: str = unit
 
     @property
-    def native_value(self) -> None | str | int | bool | dt.datetime:
+    def native_value(self) -> None | str | int | float | bool | dt.datetime:
         device: dict[str, Any] | None = self._current_data()
         return self._default_value if device is None else device.get(self._key, self._default_value)
 

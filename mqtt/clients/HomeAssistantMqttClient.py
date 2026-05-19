@@ -166,10 +166,10 @@ class HomeAssistantMqttClient(MqttPublisherClient):
             payload["enabled_by_default"] = enabled_by_default
         return (self._ha_discovery_topic("sensor", unique_id),payload)
 
-    def _create_numeric_sensor_payload(self, device: dict[str, object], unique_id: str, name: str, state_topic: str, payload_key_template: str, measurement_unit: str | None = None, enabled_by_default: bool | None = None, is_config: bool = False, payload_is_template: bool = False ) -> tuple[str, dict[str, object]]:
+    def _create_numeric_sensor_payload(self, device: dict[str, object], unique_id: str, name: str, state_topic: str, payload_key_template: str, cast: str, measurement_unit: str | None, enabled_by_default: bool | None, is_config: bool, payload_is_template: bool) -> tuple[str, dict[str, object]]:
 
         if not payload_is_template:
-            payload_key_template = "{{ value_json.%s | int(0) }}" % payload_key_template
+            payload_key_template = "{{ value_json.%s | %s(0) }}" % (payload_key_template, cast)
 
         payload = self._create_sensor_payload(device, unique_id, name, state_topic, payload_key_template, enabled_by_default, is_config, payload_is_template)
         payload[1]["state_class"] = "measurement"
@@ -179,6 +179,12 @@ class HomeAssistantMqttClient(MqttPublisherClient):
             payload[1]["unit_of_measurement"] = measurement_unit
 
         return payload
+
+    def _create_integer_sensor_payload(self, device: dict[str, object], unique_id: str, name: str, state_topic: str, payload_key_template: str, measurement_unit: str | None = None, enabled_by_default: bool | None = None, is_config: bool = False, payload_is_template: bool = False) -> tuple[str, dict[str, object]]:
+        return self._create_numeric_sensor_payload(device, unique_id, name, state_topic, payload_key_template, "int", measurement_unit, enabled_by_default, is_config, payload_is_template)
+
+    def _create_float_sensor_payload(self, device: dict[str, object], unique_id: str, name: str, state_topic: str, payload_key_template: str, measurement_unit: str | None = None, enabled_by_default: bool | None = None, is_config: bool = False, payload_is_template: bool = False) -> tuple[str, dict[str, object]]:
+        return self._create_numeric_sensor_payload(device, unique_id, name, state_topic, payload_key_template, "float", measurement_unit, enabled_by_default, is_config, payload_is_template)
 
     def _create_binary_sensor_payload(self, device: dict[str, object], unique_id: str, name: str, state_topic: str, payload_key_template: str, enabled_by_default: bool | None = None, is_config: bool = False, payload_is_template: bool = False ) -> tuple[str, dict[str, object]]:
 
@@ -280,7 +286,7 @@ class HomeAssistantMqttClient(MqttPublisherClient):
             (self._create_binary_sensor_payload(device, f"{ssid_payload_id}_vlan", "VLAN ID", state_topic, Constants.SSID_VLAN_ID) if is_readonly else self._create_number_payload(device, f"{ssid_payload_id}_vlan", "VLAN ID", state_topic, command_topic, Constants.SSID_VLAN_ID, 0, 4094, "{{ value_json.%s if value_json.get('%s') else none }}" % (Constants.SSID_VLAN_ID, Constants.SSID_VLAN_ENABLED))),
             (self._create_sensor_payload(device, f"{ssid_payload_id}_passphrase", "WiFi Passphrase", state_topic, Constants.SSID_KEY) if is_readonly or hide_ssid_passphrase else self._create_text_payload(device, f"{ssid_payload_id}_passphrase", "WiFi Passphrase", state_topic, command_topic, Constants.SSID_KEY)),
             (self._create_sensor_payload(device, f"{ssid_payload_id}_ssid_name", "SSID", state_topic, Constants.SSID_NAME) if is_readonly else self._create_text_payload(device, f"{ssid_payload_id}_ssid_name", "SSID", state_topic, command_topic, Constants.SSID_NAME)),
-            self._create_numeric_sensor_payload(device, f"{ssid_payload_id}_client_count", "Clients Online", state_topic, Constants.CLIENT_COUNT),
+            self._create_integer_sensor_payload(device, f"{ssid_payload_id}_client_count", "Clients Online", state_topic, Constants.CLIENT_COUNT),
             self._create_sensor_payload(device, f"{ssid_payload_id}_network_name", "Network", state_topic, "{{ %s }}" % json.dumps(network_name),None,False,True)
         ]
 
@@ -356,8 +362,8 @@ class HomeAssistantMqttClient(MqttPublisherClient):
             self._create_sensor_payload(device, f"{device_payload_id}_ipv6", "IPv6", state_topic, Constants.IPV6),
             self._create_sensor_payload(device, f"{device_payload_id}_firmware", "Current Firmware", state_topic, Constants.CURRENT_FIRMWARE, True, False),
             self._create_sensor_payload(device, f"{device_payload_id}_firmware_new", "Available Firmware", state_topic, Constants.NEW_FIRMWARE, True, False),
-            self._create_numeric_sensor_payload(device, f"{device_payload_id}_cpu_usage", "CPU Usage", state_topic, Constants.CPU_USAGE,"%"),
-            self._create_numeric_sensor_payload(device, f"{device_payload_id}_temperature", "Temperature", state_topic, Constants.TEMPERATURE,"°C"),
+            self._create_float_sensor_payload(device, f"{device_payload_id}_cpu_usage", "CPU Usage", state_topic, Constants.CPU_USAGE,"%"),
+            self._create_integer_sensor_payload(device, f"{device_payload_id}_temperature", "Temperature", state_topic, Constants.TEMPERATURE,"°C"),
             self._create_sensor_payload(device, f"{device_payload_id}_ssid_names", "SSIDs", state_topic, "{{ %s | join(', ') if %s else 'No SSIDs' }}" % (json.dumps(ssid_names), json.dumps(ssid_names)), False, False, True),
             self._create_sensor_payload(device, f"{device_payload_id}_last_boot", "Last Boot Time", state_topic, Constants.LAST_BOOT),
             self._create_sensor_payload(device, f"{device_payload_id}_channel_2_4", "Current 2.4GHz Channel", state_topic, Constants.CHANNEL_2_4),

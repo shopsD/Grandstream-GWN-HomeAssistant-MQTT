@@ -39,7 +39,7 @@ class GwnDevice:
     usedMemory_bytes: int
     channelload_2g4_percent: int
     channelload_6g_percent: int
-    cpuUsage_percent: int
+    cpuUsage_percent: float
     channelload_5g_percent: int
 
     # channel info
