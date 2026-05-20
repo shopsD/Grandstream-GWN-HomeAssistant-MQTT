@@ -50,16 +50,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     @staticmethod
-    def _check_numeric_list(list_string: str | None) -> bool:
-        return list_string is not None and (list_string == "" or list_string.replace(",","").replace(" ","").isnumeric())
+    def _check_numeric_list(list_string: str) -> bool:
+        return list_string == "" or list_string.replace(",","").replace(" ","").isnumeric()
 
     @staticmethod
-    def _check_mac_list(list_string: str | None) -> bool:
-        if list_string is None:
-            return False
-        if list_string == "":
-            return True
-        return all(MAC_MATCHER.fullmatch(mac.strip()) for mac in list_string.split(","))
+    def _check_mac_list(list_string: str) -> bool:
+        return list_string == "" or all(MAC_MATCHER.fullmatch(mac.strip()) for mac in list_string.split(","))
 
     @staticmethod
     def _normalise_url(url: str) -> str:
@@ -127,28 +123,32 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data[RESTRICTED_API_CONFIG_KEY] = bool(restricted_api)
 
             exclude_passphrase = user_input.get(EXCLUDE_PASSPHRASE_CONFIG_KEY)
-            if ConfigFlow._check_numeric_list(exclude_passphrase):
-                data[EXCLUDE_PASSPHRASE_CONFIG_KEY] = exclude_passphrase
-            else:
-                errors[EXCLUDE_PASSPHRASE_CONFIG_KEY] = "comma_separated_numbers"
+            if exclude_passphrase is not None:
+                if ConfigFlow._check_numeric_list(exclude_passphrase):
+                    data[EXCLUDE_PASSPHRASE_CONFIG_KEY] = exclude_passphrase
+                else:
+                    errors[EXCLUDE_PASSPHRASE_CONFIG_KEY] = "comma_separated_numbers"
 
             exclude_ssid = user_input.get(EXCLUDE_SSID_CONFIG_KEY)
-            if ConfigFlow._check_numeric_list(exclude_ssid):
-                data[EXCLUDE_SSID_CONFIG_KEY] = exclude_ssid
-            else:
-                errors[EXCLUDE_SSID_CONFIG_KEY] = "comma_separated_numbers"
+            if exclude_ssid is not None:
+                if ConfigFlow._check_numeric_list(exclude_ssid):
+                    data[EXCLUDE_SSID_CONFIG_KEY] = exclude_ssid
+                else:
+                    errors[EXCLUDE_SSID_CONFIG_KEY] = "comma_separated_numbers"
 
             exclude_device = user_input.get(EXCLUDE_DEVICE_CONFIG_KEY)
-            if ConfigFlow._check_mac_list(exclude_device):
-                data[EXCLUDE_DEVICE_CONFIG_KEY] = exclude_device
-            else:
-                errors[EXCLUDE_DEVICE_CONFIG_KEY] = "comma_separated_macs"
+            if exclude_device is not None:
+                if ConfigFlow._check_mac_list(exclude_device):
+                    data[EXCLUDE_DEVICE_CONFIG_KEY] = exclude_device
+                else:
+                    errors[EXCLUDE_DEVICE_CONFIG_KEY] = "comma_separated_macs"
 
             exclude_network = user_input.get(EXCLUDE_NETWORK_CONFIG_KEY)
-            if ConfigFlow._check_numeric_list(exclude_network):
-                data[EXCLUDE_NETWORK_CONFIG_KEY] = exclude_network
-            else:
-                errors[EXCLUDE_NETWORK_CONFIG_KEY] = "comma_separated_numbers"
+            if exclude_network is not None:
+                if ConfigFlow._check_numeric_list(exclude_network):
+                    data[EXCLUDE_NETWORK_CONFIG_KEY] = exclude_network
+                else:
+                    errors[EXCLUDE_NETWORK_CONFIG_KEY] = "comma_separated_numbers"
 
             base_url = user_input.get(BASE_URL_CONFIG_KEY)
             if base_url is not None:
@@ -208,8 +208,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is None:
             return self.async_show_form(step_id="user", data_schema=ConfigFlow.create_config_schema(), errors={})
-        existing_entries: list[ConfigEntry] = self.hass.config_entries.async_entries(DOMAIN)
 
+        existing_entries: list[ConfigEntry] = self.hass.config_entries.async_entries(DOMAIN)
         flow_data: FlowData = await ConfigFlow.build_and_validate_config(self.flow_id, existing_entries, user_input)
 
         if not flow_data.authenticated or flow_data.gwn_config is None:
