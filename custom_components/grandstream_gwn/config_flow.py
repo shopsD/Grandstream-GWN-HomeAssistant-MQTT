@@ -6,6 +6,7 @@ from typing import Any
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
 from homeassistant.core import callback
+from homeassistant.helpers.selector import EntitySelector, EntitySelectorConfig
 
 from .const import (
     APP_ID_CONFIG_KEY,
@@ -61,7 +62,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return all(MAC_MATCHER.fullmatch(mac.strip()) for mac in list_string.split(","))
 
     @staticmethod
-    async def build_and_validate_config(flow_id: str, user_input: dict[str, Any] | None = None, previous_username: str | None = None, previous_password: str | None = None) -> FlowData:
+    def _normalise_url(url: str) -> str:
+        return url.strip().rstrip("/").lower()
+
+    @staticmethod
+    async def build_and_validate_config(flow_id: str, existing_entries: list[ConfigEntry] = [], user_input: dict[str, Any] | None = None, previous_username: str | None = None, previous_password: str | None = None) -> FlowData:
         errors: dict[str, str] = {}
         if user_input is not None:
 
@@ -147,7 +152,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             base_url = user_input.get(BASE_URL_CONFIG_KEY)
             if base_url is not None:
-                data[BASE_URL_CONFIG_KEY] = str(base_url)
+                base_url = ConfigFlow._normalise_url(str(base_url))
+                if base_url is not None and any(str(entry.data.get(BASE_URL_CONFIG_KEY, "")) == base_url for entry in existing_entries):
+                    errors[BASE_URL_CONFIG_KEY] = "base_url_exists"
+                else:
+                    data[BASE_URL_CONFIG_KEY] = base_url
 
             ignore_failed_fetch_before_update = user_input.get(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY)
             if ignore_failed_fetch_before_update is not None:
@@ -171,7 +180,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return FlowData()
 
     @staticmethod
-    def create_config_schema(input_overrides: dict[str, Any] | None = None) -> vol.Schema:
+    def create_config_schema(input_overrides: dict[str, Any] | None = None, read_only: bool = False) -> vol.Schema:
         defaults: GwnConfig = GwnConfig("", "")
         if input_overrides is None:
             input_overrides = {}
@@ -180,16 +189,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(APP_ID_CONFIG_KEY, default=input_overrides.get(APP_ID_CONFIG_KEY, defaults.app_id)): str,
                 vol.Required(SECRET_KEY_CONFIG_KEY, default=input_overrides.get(SECRET_KEY_CONFIG_KEY, defaults.secret_key)): str,
                 vol.Optional(RESTRICTED_API_CONFIG_KEY, default=input_overrides.get(RESTRICTED_API_CONFIG_KEY, defaults.restricted_api)): bool,
-                vol.Optional(USERNAME_CONFIG_KEY, default=input_overrides.get(USERNAME_CONFIG_KEY, defaults.username if defaults.username is not None else "")): str,
+                vol.Optional(USERNAME_CONFIG_KEY, description={USERNAME_CONFIG_KEY: input_overrides.get(USERNAME_CONFIG_KEY, defaults.username if defaults.username is not None else "")}): str,
                 vol.Optional(PASSWORD_CONFIG_KEY, default=""): str,
-                vol.Optional(BASE_URL_CONFIG_KEY, default=input_overrides.get(BASE_URL_CONFIG_KEY, defaults.base_url)): str,
+                vol.Optional(BASE_URL_CONFIG_KEY, default=input_overrides.get(BASE_URL_CONFIG_KEY, defaults.base_url)): str if not read_only else EntitySelector(EntitySelectorConfig(read_only=True)),
                 vol.Optional(PAGE_SIZE_CONFIG_KEY, default=input_overrides.get(PAGE_SIZE_CONFIG_KEY, defaults.page_size)): int,
                 vol.Optional(MAX_PAGES_CONFIG_KEY, default=input_overrides.get(MAX_PAGES_CONFIG_KEY, defaults.max_pages)): int,
                 vol.Optional(REFRESH_PERIOD_S_CONFIG_KEY, default=input_overrides.get(REFRESH_PERIOD_S_CONFIG_KEY, defaults.refresh_period_s)): int,
-                vol.Optional(EXCLUDE_PASSPHRASE_CONFIG_KEY, default=input_overrides.get(EXCLUDE_PASSPHRASE_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_passphrase))): str,
-                vol.Optional(EXCLUDE_SSID_CONFIG_KEY, default=input_overrides.get(EXCLUDE_SSID_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_ssid))): str,
-                vol.Optional(EXCLUDE_DEVICE_CONFIG_KEY, default=input_overrides.get(EXCLUDE_DEVICE_CONFIG_KEY, ",".join(defaults.exclude_device))): str,
-                vol.Optional(EXCLUDE_NETWORK_CONFIG_KEY, default=input_overrides.get(EXCLUDE_NETWORK_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_network))): str,
+                vol.Optional(EXCLUDE_PASSPHRASE_CONFIG_KEY, description={EXCLUDE_PASSPHRASE_CONFIG_KEY: input_overrides.get(EXCLUDE_PASSPHRASE_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_passphrase))}): str,
+                vol.Optional(EXCLUDE_SSID_CONFIG_KEY, description={EXCLUDE_SSID_CONFIG_KEY: input_overrides.get(EXCLUDE_SSID_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_ssid))}): str,
+                vol.Optional(EXCLUDE_DEVICE_CONFIG_KEY, description={EXCLUDE_DEVICE_CONFIG_KEY: input_overrides.get(EXCLUDE_DEVICE_CONFIG_KEY, ",".join(defaults.exclude_device))}): str,
+                vol.Optional(EXCLUDE_NETWORK_CONFIG_KEY, description={EXCLUDE_NETWORK_CONFIG_KEY: input_overrides.get(EXCLUDE_NETWORK_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_network))}): str,
                 vol.Optional(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY, default=input_overrides.get(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY, defaults.ignore_failed_fetch_before_update)): bool,
                 vol.Optional(SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY, default=input_overrides.get(SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY, defaults.ssid_name_to_device_binding)): bool,
                 vol.Optional(NO_PUBLISH_CONFIG_KEY, default=input_overrides.get(NO_PUBLISH_CONFIG_KEY, defaults.no_publish)): bool
@@ -197,17 +206,22 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        if user_input is not None:
-            flow_data: FlowData = await ConfigFlow.build_and_validate_config(self.flow_id, user_input)
+        if user_input is None:
+            return self.async_show_form(step_id="user", data_schema=ConfigFlow.create_config_schema(), errors={})
+        existing_entries: list[ConfigEntry] = self.hass.config_entries.async_entries(DOMAIN)
 
-            if flow_data.authenticated and flow_data.gwn_config is not None:
-                self.hass.data.setdefault(DOMAIN, {})
-                self.hass.data[DOMAIN].setdefault(CLIENT_CONFIG_KEY, {})
-                self.hass.data[DOMAIN][CLIENT_CONFIG_KEY][self.flow_id] = {CLIENT_KEY: flow_data.gwn_client, CONFIG_KEY: flow_data.gwn_config}
-                return self.async_create_entry(title=flow_data.gwn_config.base_url, data=flow_data.data)
+        flow_data: FlowData = await ConfigFlow.build_and_validate_config(self.flow_id, existing_entries, user_input)
 
-            return self.async_show_form(step_id="user", data_schema=ConfigFlow.create_config_schema(flow_data.user_input), errors=flow_data.errors)
-        return self.async_show_form(step_id="user", data_schema=ConfigFlow.create_config_schema(), errors={})
+        if not flow_data.authenticated or flow_data.gwn_config is None:
+            return self.async_show_form(step_id="user", data_schema=ConfigFlow.create_config_schema(flow_data.data), errors=flow_data.errors)
+
+        self._async_abort_entries_match({BASE_URL_CONFIG_KEY: flow_data.gwn_config.base_url})
+
+        self.hass.data.setdefault(DOMAIN, {})
+        self.hass.data[DOMAIN].setdefault(CLIENT_CONFIG_KEY, {})
+        self.hass.data[DOMAIN][CLIENT_CONFIG_KEY][self.flow_id] = {CLIENT_KEY: flow_data.gwn_client, CONFIG_KEY: flow_data.gwn_config}
+        return self.async_create_entry(title=flow_data.gwn_config.base_url, data=flow_data.data)
+
 
     @staticmethod
     @callback
@@ -224,17 +238,16 @@ class OptionsFlowHandler(OptionsFlow):
         current_config: GwnConfig = GwnLibInterface.build_gwn_config(current_data)
         previous_password: str | None = current_config.password
         previous_username: str | None = current_config.username
-        if user_input is not None:
-            flow_data: FlowData = await ConfigFlow.build_and_validate_config(flow_id, user_input, previous_username, previous_password)
+        if user_input is None:
+            return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(current_data, True), errors={})
+        flow_data: FlowData = await ConfigFlow.build_and_validate_config(flow_id, [], user_input, previous_username, previous_password)
 
-            if flow_data.authenticated:
-                self.hass.data.setdefault(DOMAIN, {})
-                self.hass.data[DOMAIN].setdefault(CLIENT_CONFIG_KEY, {})
-                self.hass.data[DOMAIN][CLIENT_CONFIG_KEY][flow_id] = {CLIENT_KEY: flow_data.gwn_client, CONFIG_KEY: flow_data.gwn_config}
+        if not flow_data.authenticated:
+            return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(flow_data.user_input, True), errors=flow_data.errors)
+        self.hass.data.setdefault(DOMAIN, {})
+        self.hass.data[DOMAIN].setdefault(CLIENT_CONFIG_KEY, {})
+        self.hass.data[DOMAIN][CLIENT_CONFIG_KEY][flow_id] = {CLIENT_KEY: flow_data.gwn_client, CONFIG_KEY: flow_data.gwn_config}
 
-                self.hass.config_entries.async_update_entry(self._config_entry, data=flow_data.data)
-                await self.hass.config_entries.async_reload(self._config_entry.entry_id)
-                return self.async_create_entry(title="", data={})
-
-            return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(flow_data.user_input), errors=flow_data.errors)
-        return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(current_data), errors={})
+        self.hass.config_entries.async_update_entry(self._config_entry, data=flow_data.data)
+        await self.hass.config_entries.async_reload(self._config_entry.entry_id)
+        return self.async_create_entry(title="", data={})
