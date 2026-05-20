@@ -6,7 +6,7 @@ from typing import Any
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
 from homeassistant.core import callback
-from homeassistant.helpers.selector import EntitySelector, EntitySelectorConfig
+from homeassistant.helpers.selector import TextSelector, TextSelectorConfig, TextSelectorType
 
 from .const import (
     APP_ID_CONFIG_KEY,
@@ -153,7 +153,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             base_url = user_input.get(BASE_URL_CONFIG_KEY)
             if base_url is not None:
                 base_url = ConfigFlow._normalise_url(str(base_url))
-                if base_url is not None and any(str(entry.data.get(BASE_URL_CONFIG_KEY, "")) == base_url for entry in existing_entries):
+                if any(str(entry.data.get(BASE_URL_CONFIG_KEY, "")) == base_url for entry in existing_entries):
                     errors[BASE_URL_CONFIG_KEY] = "base_url_exists"
                 else:
                     data[BASE_URL_CONFIG_KEY] = base_url
@@ -191,7 +191,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional(RESTRICTED_API_CONFIG_KEY, default=input_overrides.get(RESTRICTED_API_CONFIG_KEY, defaults.restricted_api)): bool,
                 vol.Optional(USERNAME_CONFIG_KEY, description={USERNAME_CONFIG_KEY: input_overrides.get(USERNAME_CONFIG_KEY, defaults.username if defaults.username is not None else "")}): str,
                 vol.Optional(PASSWORD_CONFIG_KEY, default=""): str,
-                vol.Optional(BASE_URL_CONFIG_KEY, default=input_overrides.get(BASE_URL_CONFIG_KEY, defaults.base_url)): str if not read_only else EntitySelector(EntitySelectorConfig(read_only=True)),
+                vol.Optional(BASE_URL_CONFIG_KEY, default=input_overrides.get(BASE_URL_CONFIG_KEY, defaults.base_url)): TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT, read_only=read_only)),
                 vol.Optional(PAGE_SIZE_CONFIG_KEY, default=input_overrides.get(PAGE_SIZE_CONFIG_KEY, defaults.page_size)): int,
                 vol.Optional(MAX_PAGES_CONFIG_KEY, default=input_overrides.get(MAX_PAGES_CONFIG_KEY, defaults.max_pages)): int,
                 vol.Optional(REFRESH_PERIOD_S_CONFIG_KEY, default=input_overrides.get(REFRESH_PERIOD_S_CONFIG_KEY, defaults.refresh_period_s)): int,
@@ -221,7 +221,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self.hass.data[DOMAIN].setdefault(CLIENT_CONFIG_KEY, {})
         self.hass.data[DOMAIN][CLIENT_CONFIG_KEY][self.flow_id] = {CLIENT_KEY: flow_data.gwn_client, CONFIG_KEY: flow_data.gwn_config}
         return self.async_create_entry(title=flow_data.gwn_config.base_url, data=flow_data.data)
-
 
     @staticmethod
     @callback
