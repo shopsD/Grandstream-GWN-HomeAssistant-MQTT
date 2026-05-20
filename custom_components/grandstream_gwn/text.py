@@ -12,6 +12,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import GwnDataUpdateCoordinator
+from .gwn_common import GwnCommon
 from .sensor import _networks
 from gwn.constants import Constants
 
@@ -43,15 +44,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                     if ssid[Constants.SSID_KEY] is not None:
                         create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnSSIDText, coordinator, ssid, Constants.SSID_KEY, "WiFi Passphrase")
 
-        # Remove any device that is not in the cache since it likely means they are have been removed from gwn manager (removed network, device or ssid)
-        removed_unique_ids = cached_unique_ids - current_unique_ids
-        for unique_id in removed_unique_ids:
-            network_entity_id: str | None = entity_registry.async_get_entity_id("text", DOMAIN, unique_id)
-            if network_entity_id is not None:
-                entity_registry.async_remove(network_entity_id)
-        if len(new_entities) > 0:
-            async_add_entities(new_entities)
-        cached_unique_ids = current_unique_ids
+        cached_unique_ids = GwnCommon.update_entities("text", entry, cached_unique_ids, current_unique_ids, new_entities, entity_registry, async_add_entities)
 
     _sync_entities()
     entry.async_on_unload(coordinator.async_add_listener(_sync_entities))
