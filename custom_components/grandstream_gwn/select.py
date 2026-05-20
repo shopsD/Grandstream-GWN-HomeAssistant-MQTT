@@ -20,10 +20,13 @@ from gwn.constants import Constants
 _LOGGER = logging.getLogger(Constants.LOG)
 
 def create_entity(current_unique_ids: set[str], cached_unique_ids: set[str], new_entities: list[GwnSelectEntity], entity_type: Callable[[GwnDataUpdateCoordinator, dict[str, Any], str, str, str], GwnSelectEntity], coordinator: GwnDataUpdateCoordinator, data: dict[str, Any], key: str, options_key: str, name_suffix: str) -> None:
-    entity: GwnSelectEntity = entity_type(coordinator, data, key, options_key, name_suffix)
-    current_unique_ids.add(entity.gwn_unique_id())
-    if entity.gwn_unique_id() not in cached_unique_ids:
-        new_entities.append(entity) # cache entities to detect later removal
+    try:
+        entity: GwnSelectEntity = entity_type(coordinator, data, key, options_key, name_suffix)
+        current_unique_ids.add(entity.gwn_unique_id())
+        if entity.gwn_unique_id() not in cached_unique_ids:
+            new_entities.append(entity) # cache entities to detect later removal
+    except Exception as e:
+        _LOGGER.error(f"Failed to create a Select Entity with Key {key}: {e}")
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator: GwnDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
@@ -39,13 +42,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
             networks: dict[str, dict[str, Any]] = _networks(coordinator)
             for network in networks.values():
                 for device in network.get(Constants.DEVICES, {}).values():
-                    try:
-                        create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSelect, coordinator, device, Constants.NETWORK_ID, Constants.NETWORKS, "Network")
-                        create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSelect, coordinator, device, Constants.AP_2G4_CHANNEL, Constants.CHANNEL_LISTS_2G4, "2.4Ghz Channel")
-                        create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSelect, coordinator, device, Constants.AP_5G_CHANNEL, Constants.CHANNEL_LISTS_5G, "5Ghz Channel")
-                        create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSelect, coordinator, device, Constants.AP_6G_CHANNEL, Constants.CHANNEL_LISTS_6G, "6Ghz Channel")
-                    except Exception as e:
-                        _LOGGER.warn(f"Failed to create Select Entities for {device[Constants.MAC]}: {e}")
+                    create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSelect, coordinator, device, Constants.NETWORK_ID, Constants.NETWORKS, "Network")
+                    create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSelect, coordinator, device, Constants.AP_2G4_CHANNEL, Constants.CHANNEL_LISTS_2G4, "2.4Ghz Channel")
+                    create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSelect, coordinator, device, Constants.AP_5G_CHANNEL, Constants.CHANNEL_LISTS_5G, "5Ghz Channel")
+                    create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSelect, coordinator, device, Constants.AP_6G_CHANNEL, Constants.CHANNEL_LISTS_6G, "6Ghz Channel")
 
         cached_unique_ids = GwnCommon.update_entities("select", entry, cached_unique_ids, current_unique_ids, new_entities, entity_registry, async_add_entities)
 

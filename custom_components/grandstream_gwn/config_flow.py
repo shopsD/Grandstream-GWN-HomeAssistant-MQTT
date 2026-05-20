@@ -1,3 +1,4 @@
+import logging
 import re
 import voluptuous as vol
 from dataclasses import dataclass, field
@@ -34,8 +35,10 @@ from .const import (
 from .gwn_lib_interface import GwnLibInterface
 from gwn.api import GwnClient
 from gwn.authentication import GwnConfig
+from gwn.constants import Constants
 
 MAC_MATCHER: re.Pattern[str] = re.compile(r"([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}")
+_LOGGER = logging.getLogger(Constants.LOG)
 
 @dataclass(slots=True)
 class FlowData:
@@ -106,6 +109,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 has_password = True
                 hash_password = False
                 password = previous_password
+                _LOGGER.debug("Config Flow: Reusing previous password")
             
             if has_username and not has_password:
                 errors[PASSWORD_CONFIG_KEY] = "password_missing"
@@ -170,10 +174,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if no_publish is not None:
                 data[NO_PUBLISH_CONFIG_KEY] = bool(no_publish)
             if len(errors) == 0:
+                
                 gwn_config: GwnConfig = GwnLibInterface.build_gwn_config(data)
                 gwn_client: GwnClient = GwnClient(gwn_config) # prevent a double login so preserve the client if the authentication succeeds
-                if await gwn_client.authenticate():
-                   return FlowData(gwn_config=gwn_config, gwn_client=gwn_client, data=data, user_input=dict(user_input), authenticated=True)
+                authenticated: bool = False
+                try:
+                    authenticated = await gwn_client.authenticate()
+                except Exception as e:
+                    _LOGGER.error(f"Config Flow: Failed to Authenticate against {base_url}: {e}")
+                if authenticated:
+                    _LOGGER.debug(f"Config Flow: Successfully Authenticated against {base_url}")
+                    return FlowData(gwn_config=gwn_config, gwn_client=gwn_client, data=data, user_input=dict(user_input), authenticated=True)
                 await gwn_client.close()
                 errors["base"] = "user_pass_authentication_failed" if gwn_client.api_authenticated else "api_authentication_failed"
             return FlowData(data=data, user_input=dict(user_input), errors=errors)
@@ -183,6 +194,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def create_config_schema(input_overrides: dict[str, Any] | None = None, read_only: bool = False) -> vol.Schema:
         defaults: GwnConfig = GwnConfig("", "")
         if input_overrides is None:
+            _LOGGER.debug("Config Flow: No overridden inputs for config flow. Defaults will be used")
             input_overrides = {}
         return vol.Schema(
             {

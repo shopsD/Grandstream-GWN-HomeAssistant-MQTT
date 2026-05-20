@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Callable
 from typing import Any
 
@@ -16,18 +17,27 @@ from .gwn_common import GwnCommon
 from .sensor import _networks
 from gwn.constants import Constants
 
+_LOGGER = logging.getLogger(Constants.LOG)
+
 def _create_switch_entity(current_unique_ids: set[str], cached_unique_ids: set[str], new_entities: list[GwnSwitchEntity], entity: GwnSwitchEntity) -> None:
     current_unique_ids.add(entity.gwn_unique_id())
     if entity.gwn_unique_id() not in cached_unique_ids:
         new_entities.append(entity) # cache entities to detect later removal
+    
 
 def create_entity(current_unique_ids: set[str], cached_unique_ids: set[str], new_entities: list[GwnSwitchEntity], entity_type: Callable[[GwnDataUpdateCoordinator, dict[str, Any], str, str], GwnSwitchEntity], coordinator: GwnDataUpdateCoordinator, data: dict[str, Any], key: str, name_suffix: str) -> None:
-    entity: GwnSwitchEntity = entity_type(coordinator, data, key, name_suffix)
-    _create_switch_entity(current_unique_ids, cached_unique_ids, new_entities, entity)
+    try:
+        entity: GwnSwitchEntity = entity_type(coordinator, data, key, name_suffix)
+        _create_switch_entity(current_unique_ids, cached_unique_ids, new_entities, entity)
+    except Exception as e:
+        _LOGGER.error(f"Failed to create a Switch Entity with Key {key}: {e}")
 
 def create_ssid_device_entity(current_unique_ids: set[str], cached_unique_ids: set[str], new_entities: list[GwnSwitchEntity], entity_type: Callable[[GwnDataUpdateCoordinator, dict[str, Any], str, str, str], GwnSwitchEntity], coordinator: GwnDataUpdateCoordinator, data: dict[str, Any], key: str, name_suffix: str, device_mac: str) -> None:
-    entity: GwnSwitchEntity = entity_type(coordinator, data, key, name_suffix, device_mac)
-    _create_switch_entity(current_unique_ids, cached_unique_ids, new_entities, entity)
+    try:
+        entity: GwnSwitchEntity = entity_type(coordinator, data, key, name_suffix, device_mac)
+        _create_switch_entity(current_unique_ids, cached_unique_ids, new_entities, entity)
+    except Exception as e:
+        _LOGGER.error(f"Failed to create a Switch Entity with Key {key}: {e}")
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator: GwnDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]

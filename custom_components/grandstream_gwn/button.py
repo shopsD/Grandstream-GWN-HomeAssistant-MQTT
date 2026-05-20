@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Callable
 from typing import Any
 
@@ -16,11 +17,16 @@ from .gwn_common import GwnCommon
 from .sensor import _networks
 from gwn.constants import Constants
 
+_LOGGER = logging.getLogger(Constants.LOG)
+
 def create_entity(current_unique_ids: set[str], cached_unique_ids: set[str], new_entities: list[GwnButtonEntity], entity_type: Callable[[GwnDataUpdateCoordinator, dict[str, Any], str, str], GwnButtonEntity], coordinator: GwnDataUpdateCoordinator, data: dict[str, Any], key: str, name_suffix: str) -> None:
-    entity: GwnButtonEntity = entity_type(coordinator, data, key, name_suffix)
-    current_unique_ids.add(entity.gwn_unique_id())
-    if entity.gwn_unique_id() not in cached_unique_ids:
-        new_entities.append(entity) # cache entities to detect later removal
+    try:
+        entity: GwnButtonEntity = entity_type(coordinator, data, key, name_suffix)
+        current_unique_ids.add(entity.gwn_unique_id())
+        if entity.gwn_unique_id() not in cached_unique_ids:
+            new_entities.append(entity) # cache entities to detect later removal
+    except Exception as e:
+        _LOGGER.error(f"Failed to create a Button Entity with Key {key}: {e}")
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator: GwnDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]

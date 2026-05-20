@@ -1,4 +1,5 @@
 import datetime as dt
+import logging
 from collections.abc import Callable
 from typing import Any
 
@@ -16,6 +17,7 @@ from .coordinator import GwnDataUpdateCoordinator
 from .gwn_common import GwnCommon
 from gwn.constants import Constants
 
+_LOGGER = logging.getLogger(Constants.LOG)
 
 def _networks(coordinator: GwnDataUpdateCoordinator) -> dict[str, dict[str, Any]]:
     raw_data = coordinator.data if isinstance(coordinator.data, dict) else {}
@@ -28,12 +30,18 @@ def _create_sensor_entity(current_unique_ids: set[str], cached_unique_ids: set[s
         new_entities.append(entity) # cache entities to detect later removal
 
 def create_entity(current_unique_ids: set[str], cached_unique_ids: set[str], new_entities: list[GwnSensorEntity], entity_type: Callable[[GwnDataUpdateCoordinator, dict[str, Any], str, str, SensorDeviceClass | None, Any | None], GwnSensorEntity], coordinator: GwnDataUpdateCoordinator, data: dict[str, Any], key: str, name_suffix: str, device_class: SensorDeviceClass | None = None, default_value: Any | None = None) -> None:
-    entity: GwnSensorEntity = entity_type(coordinator, data, key, name_suffix, device_class, default_value)
-    _create_sensor_entity(current_unique_ids, cached_unique_ids, new_entities, entity)
+    try:
+        entity: GwnSensorEntity = entity_type(coordinator, data, key, name_suffix, device_class, default_value)
+        _create_sensor_entity(current_unique_ids, cached_unique_ids, new_entities, entity)
+    except Exception as e:
+        _LOGGER.error(f"Failed to create a Sensor Entity with Key {key}: {e}")
 
 def create_device_entity(current_unique_ids: set[str], cached_unique_ids: set[str], new_entities: list[GwnSensorEntity], entity_type: Callable[[GwnDataUpdateCoordinator, dict[str, Any], str, str, str | None, SensorDeviceClass | None, Any | None], GwnSensorEntity], coordinator: GwnDataUpdateCoordinator, data: dict[str, Any], key: str, name_suffix: str, unit: str | None = None, device_class: SensorDeviceClass | None = None, default_value: Any | None = None) -> None:
-    entity: GwnSensorEntity = entity_type(coordinator, data, key, name_suffix, unit, device_class, default_value)
-    _create_sensor_entity(current_unique_ids, cached_unique_ids, new_entities, entity)
+    try:
+        entity: GwnSensorEntity = entity_type(coordinator, data, key, name_suffix, unit, device_class, default_value)
+        _create_sensor_entity(current_unique_ids, cached_unique_ids, new_entities, entity)
+    except Exception as e:
+        _LOGGER.error(f"Failed to create a Sensor Entity with Key {key}: {e}")
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator: GwnDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]

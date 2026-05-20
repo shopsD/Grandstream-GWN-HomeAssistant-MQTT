@@ -37,6 +37,7 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
         return value.value
 
     def _serialise_ssid(self, gwn_network: GwnNetwork, gwn_ssid: GwnSSID) -> dict[str, object]:
+        _LOGGER.debug(f"Coordinator: Serialising SSID {gwn_ssid.id} for Network: {gwn_network.id} On URL: {self._gwn_config.base_url}")
         return {
             Constants.SSID_ID: gwn_ssid.id,
             Constants.SSID_NAME: gwn_ssid.ssidName,
@@ -62,6 +63,7 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
         }
 
     def _serialise_device(self, gwn_network: GwnNetwork, gwn_device: GwnDevice, ssids: list[GwnSSID], networks: dict[int, str]) -> dict[str, object]:
+        _LOGGER.debug(f"Coordinator: Serialising Device {gwn_device.mac} for Network: {gwn_network.id} On URL: {self._gwn_config.base_url}")
         return {
             Constants.STATUS: gwn_device.status,
             Constants.AP_TYPE: gwn_device.apType,
@@ -113,6 +115,7 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
         }
 
     def _serialise_network(self, gwn_network: GwnNetwork, ssids: dict[str,dict[str, object]], devices: dict[str,dict[str, object]]) -> dict[str, object]:
+        _LOGGER.debug(f"Coordinator: Serialising Network {gwn_network.id} On URL: {self._gwn_config.base_url}")
         return {
             Constants.NETWORK_ID: gwn_network.id,
             Constants.NETWORK_NAME: gwn_network.networkName,
@@ -154,7 +157,7 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def async_set_network_value(self, network_id: str, key: str, value: str) -> bool:
         payload: GwnNetworkPayload = GwnNetworkPayload(id=int(network_id))
-
+        _LOGGER.debug(f"Coordinator: Setting Network data for Network {network_id} On URL: {self._gwn_config.base_url} - Key: {key}")
         if key == Constants.NETWORK_NAME:
             payload.networkName = None if value is None else str(value)
         else:
@@ -167,7 +170,7 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def async_set_device_value(self, device_mac: str, network_id: str, key: str, value: int | str) -> bool:
         payload: GwnDevicePayload = GwnDevicePayload(ap_mac=device_mac, networkId=int(network_id))
-
+        _LOGGER.debug(f"Coordinator: Setting device data for Device {device_mac} for Network {network_id} On URL: {self._gwn_config.base_url} - Key: {key}")
         if key == Constants.AP_NAME:
             payload.ap_name = None if value is None else str(value)
         elif key == Constants.AP_2G4_CHANNEL:
@@ -188,7 +191,7 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def async_press_device_action(self, device_mac: str, network_id: str, action: str) -> bool:
         payload = GwnDevicePayload(ap_mac=device_mac, networkId=int(network_id))
-
+        _LOGGER.debug(f"Coordinator: Running device command for Device {device_mac} for Network {network_id} On URL: {self._gwn_config.base_url} - Action: {action}")
         if action == Constants.REBOOT:
             payload.reboot = True
         elif action == Constants.RESET:
@@ -205,6 +208,7 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def async_set_ssid_value(self, ssid_id: str, network_id: str, key: str, value: bool | int | str | dict[str, bool]) -> bool:
         payload: GwnSSIDPayload = GwnSSIDPayload(id=int(ssid_id), networkId=int(network_id))
+        _LOGGER.debug(f"Coordinator: Setting SSID data for SSID {ssid_id} for Network {network_id} On URL: {self._gwn_config.base_url} - Key: {key}")
 
         if key == Constants.SSID_ENABLE:
             payload.ssidEnable = bool(value)
