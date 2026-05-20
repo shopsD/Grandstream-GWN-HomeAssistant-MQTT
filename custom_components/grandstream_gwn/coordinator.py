@@ -1,4 +1,5 @@
 import logging
+import re
 from datetime import timedelta
 from enum import Enum
 from typing import Any
@@ -20,6 +21,9 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
         self._entry = entry
         self._gwn_config: GwnConfig = gwn_config
         self._gwn_client: GwnClient = gwn_client
+
+        self._unique_id: str = re.sub(r'[^a-zA-Z0-9]', '', self._gwn_config.base_url)
+
         super().__init__(
             hass,
             logger=_LOGGER,
@@ -144,6 +148,9 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
 
     def is_readonly(self) -> bool:
         return self._gwn_client.is_readonly
+
+    def unique_url_id(self) -> str:
+        return self._unique_id
 
     async def async_set_network_value(self, network_id: str, key: str, value: str) -> bool:
         payload: GwnNetworkPayload = GwnNetworkPayload(id=int(network_id))

@@ -70,7 +70,7 @@ class GwnSwitchEntity(CoordinatorEntity[GwnDataUpdateCoordinator], SwitchEntity)
         self._name: str = name
 
         self._attr_name: str = name_suffix
-        self._attr_unique_id: str = f"{base}_{self._root_id}_{key}"
+        self._attr_unique_id: str = f"{self._coordinator._unique_id}_{base}_{self._root_id}_{key}"
 
     async def _toggle_value(self, value: bool) -> bool:
         return False

@@ -105,9 +105,10 @@ class GwnSensorEntity(CoordinatorEntity, SensorEntity):
         self._name: str = name
 
         self._attr_name: str = name_suffix
-        self._attr_unique_id: str = f"{base}_{self._root_id}_{key}"
+        self._attr_unique_id: str = f"{self._coordinator._unique_id}_{base}_{self._root_id}_{key}"
         if device_class is not None:
             self._attr_device_class: SensorDeviceClass = device_class
+
     def gwn_unique_id(self) -> str:
         return self._attr_unique_id
 
