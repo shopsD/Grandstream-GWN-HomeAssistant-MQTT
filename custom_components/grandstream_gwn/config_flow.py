@@ -189,16 +189,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(APP_ID_CONFIG_KEY, default=input_overrides.get(APP_ID_CONFIG_KEY, defaults.app_id)): str,
                 vol.Required(SECRET_KEY_CONFIG_KEY, default=input_overrides.get(SECRET_KEY_CONFIG_KEY, defaults.secret_key)): str,
                 vol.Optional(RESTRICTED_API_CONFIG_KEY, default=input_overrides.get(RESTRICTED_API_CONFIG_KEY, defaults.restricted_api)): bool,
-                vol.Optional(USERNAME_CONFIG_KEY, description={USERNAME_CONFIG_KEY: input_overrides.get(USERNAME_CONFIG_KEY, defaults.username if defaults.username is not None else "")}): str,
+                vol.Optional(USERNAME_CONFIG_KEY, description={"suggested_value": input_overrides.get(USERNAME_CONFIG_KEY, "" if defaults.username is None else defaults.username)}): str,
                 vol.Optional(PASSWORD_CONFIG_KEY, default=""): str,
                 vol.Optional(BASE_URL_CONFIG_KEY, default=input_overrides.get(BASE_URL_CONFIG_KEY, defaults.base_url)): TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT, read_only=read_only)),
                 vol.Optional(PAGE_SIZE_CONFIG_KEY, default=input_overrides.get(PAGE_SIZE_CONFIG_KEY, defaults.page_size)): int,
                 vol.Optional(MAX_PAGES_CONFIG_KEY, default=input_overrides.get(MAX_PAGES_CONFIG_KEY, defaults.max_pages)): int,
                 vol.Optional(REFRESH_PERIOD_S_CONFIG_KEY, default=input_overrides.get(REFRESH_PERIOD_S_CONFIG_KEY, defaults.refresh_period_s)): int,
-                vol.Optional(EXCLUDE_PASSPHRASE_CONFIG_KEY, description={EXCLUDE_PASSPHRASE_CONFIG_KEY: input_overrides.get(EXCLUDE_PASSPHRASE_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_passphrase))}): str,
-                vol.Optional(EXCLUDE_SSID_CONFIG_KEY, description={EXCLUDE_SSID_CONFIG_KEY: input_overrides.get(EXCLUDE_SSID_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_ssid))}): str,
-                vol.Optional(EXCLUDE_DEVICE_CONFIG_KEY, description={EXCLUDE_DEVICE_CONFIG_KEY: input_overrides.get(EXCLUDE_DEVICE_CONFIG_KEY, ",".join(defaults.exclude_device))}): str,
-                vol.Optional(EXCLUDE_NETWORK_CONFIG_KEY, description={EXCLUDE_NETWORK_CONFIG_KEY: input_overrides.get(EXCLUDE_NETWORK_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_network))}): str,
+                vol.Optional(EXCLUDE_PASSPHRASE_CONFIG_KEY, description={"suggested_value": input_overrides.get(EXCLUDE_PASSPHRASE_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_passphrase))}): str,
+                vol.Optional(EXCLUDE_SSID_CONFIG_KEY, description={"suggested_value": input_overrides.get(EXCLUDE_SSID_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_ssid))}): str,
+                vol.Optional(EXCLUDE_DEVICE_CONFIG_KEY, description={"suggested_value": input_overrides.get(EXCLUDE_DEVICE_CONFIG_KEY, ",".join(defaults.exclude_device))}): str,
+                vol.Optional(EXCLUDE_NETWORK_CONFIG_KEY, description={"suggested_value": input_overrides.get(EXCLUDE_NETWORK_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_network))}): str,
                 vol.Optional(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY, default=input_overrides.get(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY, defaults.ignore_failed_fetch_before_update)): bool,
                 vol.Optional(SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY, default=input_overrides.get(SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY, defaults.ssid_name_to_device_binding)): bool,
                 vol.Optional(NO_PUBLISH_CONFIG_KEY, default=input_overrides.get(NO_PUBLISH_CONFIG_KEY, defaults.no_publish)): bool
@@ -214,8 +214,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if not flow_data.authenticated or flow_data.gwn_config is None:
             return self.async_show_form(step_id="user", data_schema=ConfigFlow.create_config_schema(flow_data.data), errors=flow_data.errors)
-
-        self._async_abort_entries_match({BASE_URL_CONFIG_KEY: flow_data.gwn_config.base_url})
 
         self.hass.data.setdefault(DOMAIN, {})
         self.hass.data[DOMAIN].setdefault(CLIENT_CONFIG_KEY, {})
