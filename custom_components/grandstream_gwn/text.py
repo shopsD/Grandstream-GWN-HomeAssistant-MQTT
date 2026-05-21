@@ -65,7 +65,7 @@ class GwnTextEntity(CoordinatorEntity[GwnDataUpdateCoordinator], TextEntity):
         self._name: str = name
 
         self._attr_name: str = name_suffix
-        self._attr_unique_id: str = f"{self._coordinator._unique_id}_{base}_{self._root_id}_{key}"
+        self._attr_unique_id: str = f"{self._coordinator.unique_identifier()}_{base}_{self._root_id}_{key}"
 
     def gwn_unique_id(self) -> str:
         return self._attr_unique_id
@@ -91,7 +91,7 @@ class GwnNetworkText(GwnTextEntity):
         if self._current_data() is None:
             return None
         return {
-            "identifiers": {(DOMAIN, f"device_{self._root_id}_{self._coordinator.unique_identifier}")},
+            "identifiers": {(DOMAIN, f"device_{self._root_id}_{self._coordinator.unique_identifier()}")},
             "name": self._name,
             "manufacturer": "Grandstream",
             "model": "GWN Network"
@@ -136,7 +136,7 @@ class GwnDeviceText(GwnTextEntity):
         if self._current_data() is None:
             return None
         return  {
-            "identifiers": {(DOMAIN, f"device_{self._root_id}_{self._coordinator.unique_identifier}")},
+            "identifiers": {(DOMAIN, f"device_{self._root_id}_{self._coordinator.unique_identifier()}")},
             "name": self._name,
             "manufacturer": "Grandstream",
             "model": self._ap_type,
@@ -197,7 +197,7 @@ class GwnSSIDText(GwnTextEntity):
         if self._current_data() is None:
             return None
         return {
-            "identifiers": {(DOMAIN, f"device_{self._root_id}_{self._coordinator.unique_identifier}")},
+            "identifiers": {(DOMAIN, f"device_{self._root_id}_{self._coordinator.unique_identifier()}")},
             "name": self._name,
             "manufacturer": "Grandstream",
             "model": self._model

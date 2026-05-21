@@ -64,7 +64,7 @@ class GwnSelectEntity(CoordinatorEntity[GwnDataUpdateCoordinator], SelectEntity)
         self._options_key: str = options_key
 
         self._attr_name: str = name_suffix
-        self._attr_unique_id: str = f"{self._coordinator._unique_id}_{base}_{self._root_id}_{key}"
+        self._attr_unique_id: str = f"{self._coordinator.unique_identifier()}_{base}_{self._root_id}_{key}"
 
     @property
     def _option_map(self) -> dict[int, str]:
@@ -120,7 +120,7 @@ class GwnDeviceSelect(GwnSelectEntity):
         if self._current_data() is None:
             return None
         return {
-            "identifiers": {(DOMAIN, f"device_{self._root_id}_{self._coordinator.unique_identifier}")},
+            "identifiers": {(DOMAIN, f"device_{self._root_id}_{self._coordinator.unique_identifier()}")},
             "name": self._name,
             "manufacturer": "Grandstream",
             "model": self._ap_type,

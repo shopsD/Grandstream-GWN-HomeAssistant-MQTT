@@ -79,7 +79,7 @@ class GwnSwitchEntity(CoordinatorEntity[GwnDataUpdateCoordinator], SwitchEntity)
         self._name: str = name
 
         self._attr_name: str = name_suffix
-        self._attr_unique_id: str = f"{self._coordinator._unique_id}_{base}_{self._root_id}_{key}"
+        self._attr_unique_id: str = f"{self._coordinator.unique_identifier()}_{base}_{self._root_id}_{key}"
 
     async def _toggle_value(self, value: bool) -> bool:
         return False
@@ -120,7 +120,7 @@ class GwnSSIDSwitch(GwnSwitchEntity):
         if self._current_data() is None:
             return None
         return {
-            "identifiers": {(DOMAIN, f"device_{self._root_id}_{self._coordinator.unique_identifier}")},
+            "identifiers": {(DOMAIN, f"device_{self._root_id}_{self._coordinator.unique_identifier()}")},
             "name": self._name,
             "manufacturer": "Grandstream",
             "model": self._model
@@ -159,7 +159,7 @@ class GwnSSIDDeviceSwitch(GwnSSIDSwitch):
     def __init__(self, coordinator: GwnDataUpdateCoordinator, ssid: dict[str, Any], key: str, name_suffix: str, device_mac: str) -> None:
         super().__init__(coordinator, ssid, key, name_suffix)
         self._device_mac: str = device_mac
-        self._attr_unique_id: str = f"{self._root_id}_{key}_{self._device_mac}"
+        self._attr_unique_id: str = f"{self._attr_unique_id}_{self._device_mac}"
 
     async def _toggle_value(self, value: bool) -> bool:
         return await self.coordinator.async_set_ssid_value(self._root_id, self._network_id, self._key, {self._device_mac: value})

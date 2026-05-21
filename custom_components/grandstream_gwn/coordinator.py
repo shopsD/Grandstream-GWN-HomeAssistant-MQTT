@@ -1,5 +1,4 @@
 import logging
-import re
 import datetime as dt
 from enum import Enum
 from typing import Any
@@ -21,8 +20,6 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
         self._entry = entry
         self._gwn_config: GwnConfig = gwn_config
         self._gwn_client: GwnClient = gwn_client
-
-        self._unique_id: str = re.sub(r'[^a-zA-Z0-9]', '_', self._gwn_config.base_url)
 
         super().__init__(
             hass,
