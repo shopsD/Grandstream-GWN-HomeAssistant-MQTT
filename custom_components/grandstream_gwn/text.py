@@ -60,12 +60,12 @@ class GwnTextEntity(CoordinatorEntity[GwnDataUpdateCoordinator], TextEntity):
         super().__init__(coordinator)
         self._coordinator: GwnDataUpdateCoordinator = coordinator
         self._network_id: str = network_id
-        self._root_id = root_id
+        self._root_id = f"{self._coordinator._unique_id}_{root_id}"
         self._key: str = key
         self._name: str = name
 
         self._attr_name: str = name_suffix
-        self._attr_unique_id: str = f"{self._coordinator._unique_id}_{base}_{self._root_id}_{key}"
+        self._attr_unique_id: str = f"{base}_{self._root_id}_{key}"
 
     def gwn_unique_id(self) -> str:
         return self._attr_unique_id

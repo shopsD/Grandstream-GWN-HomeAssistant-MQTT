@@ -22,7 +22,7 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
         self._gwn_config: GwnConfig = gwn_config
         self._gwn_client: GwnClient = gwn_client
 
-        self._unique_id: str = re.sub(r'[^a-zA-Z0-9]', '', self._gwn_config.base_url)
+        self._unique_id: str = re.sub(r'[^a-zA-Z0-9]', '_', self._gwn_config.base_url)
 
         super().__init__(
             hass,

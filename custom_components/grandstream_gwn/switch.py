@@ -23,7 +23,6 @@ def _create_switch_entity(current_unique_ids: set[str], cached_unique_ids: set[s
     current_unique_ids.add(entity.gwn_unique_id())
     if entity.gwn_unique_id() not in cached_unique_ids:
         new_entities.append(entity) # cache entities to detect later removal
-    
 
 def create_entity(current_unique_ids: set[str], cached_unique_ids: set[str], new_entities: list[GwnSwitchEntity], entity_type: Callable[[GwnDataUpdateCoordinator, dict[str, Any], str, str], GwnSwitchEntity], coordinator: GwnDataUpdateCoordinator, data: dict[str, Any], key: str, name_suffix: str) -> None:
     try:
@@ -75,12 +74,12 @@ class GwnSwitchEntity(CoordinatorEntity[GwnDataUpdateCoordinator], SwitchEntity)
         super().__init__(coordinator)
         self._coordinator: GwnDataUpdateCoordinator = coordinator
         self._network_id: str = network_id
-        self._root_id = root_id
+        self._root_id = f"{self._coordinator._unique_id}_{root_id}"
         self._key: str = key
         self._name: str = name
 
         self._attr_name: str = name_suffix
-        self._attr_unique_id: str = f"{self._coordinator._unique_id}_{base}_{self._root_id}_{key}"
+        self._attr_unique_id: str = f"{base}_{self._root_id}_{key}"
 
     async def _toggle_value(self, value: bool) -> bool:
         return False

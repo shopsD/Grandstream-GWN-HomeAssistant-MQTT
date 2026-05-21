@@ -160,7 +160,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data[BASE_URL_CONFIG_KEY] = base_url
 
             if len(errors) == 0:
-                
                 gwn_config: GwnConfig = GwnLibInterface.build_gwn_config(data)
                 gwn_client: GwnClient = GwnClient(gwn_config) # prevent a double login so preserve the client if the authentication succeeds
                 authenticated: bool = False
