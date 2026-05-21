@@ -207,7 +207,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         flow_data: FlowData = await ConfigFlow.build_and_validate_config(self.flow_id, existing_entries, user_input)
 
         if not flow_data.authenticated or flow_data.gwn_config is None:
-            return self.async_show_form(step_id="user", data_schema=ConfigFlow.create_config_schema(flow_data.data), errors=flow_data.errors)
+            return self.async_show_form(step_id="user", data_schema=ConfigFlow.create_config_schema(flow_data.user_input), errors=flow_data.errors)
 
         self.hass.data.setdefault(DOMAIN, {})
         self.hass.data[DOMAIN].setdefault(CLIENT_CONFIG_KEY, {})

@@ -138,7 +138,7 @@ class GwnNetworkSensor(GwnSensorEntity):
         if self._current_data() is None:
             return None
         return {
-            "identifiers": {(DOMAIN, f"network_{self._root_id}")},
+            "identifiers": {(DOMAIN, self.gwn_unique_id())},
             "name": self._name,
             "manufacturer": "Grandstream",
             "model": "GWN Network"
@@ -175,7 +175,7 @@ class GwnDeviceSensor(GwnSensorEntity):
         if self._current_data() is None:
             return None
         return {
-            "identifiers": {(DOMAIN, f"device_{self._root_id}")},
+            "identifiers": {(DOMAIN, self.gwn_unique_id())},
             "name": self._name,
             "manufacturer": "Grandstream",
             "model": self._ap_type,
@@ -244,7 +244,7 @@ class GwnSSIDSensor(GwnSensorEntity):
         if self._current_data() is None:
             return None
         return {
-            "identifiers": {(DOMAIN, f"ssid_{self._root_id}")},
+            "identifiers": {(DOMAIN, self.gwn_unique_id())},
             "name": self._name,
             "manufacturer": "Grandstream",
             "model": self._model
