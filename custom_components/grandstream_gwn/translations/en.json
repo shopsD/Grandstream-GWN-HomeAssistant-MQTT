@@ -1,36 +1,97 @@
 {
+    "common":{
+        "config_flow": {
+            "error": {
+                "required_ge_1": "Must be greater than or equal to 1",
+                "required_ge_0": "Must be greater than or equal to 0",
+                "password_missing": "Password is missing",
+                "username_missing": "Username is missing",
+                "requires_username_password": "Requires username and password to be set",
+                "comma_separated_numbers": "Must be a comma-separated list of numbers",
+                "comma_separated_macs": "Must be a comma-separated list of MAC Addresses",
+                "user_pass_authentication_failed": "Username/Password Authentication Failed",
+                "api_authentication_failed": "API Authentication Failed",
+                "base_url_exists": "A GWN Manager instance with that url already exists"
+            },
+            "data": {
+                "app_id": "GWN Manager Application ID",
+                "secret_key": "GWN Manager Secret Key",
+                "restricted_api": "GWN Manager Restricted API Enabled",
+                "username": "Username",
+                "password": "Password",
+                "base_url": "GWN Manager URL",
+                "page_size": "Page Size",
+                "max_pages": "Max Pages",
+                "refresh_period_s": "Refresh Period (seconds)",
+                "exclude_passphrase": "Exclude Passphrases",
+                "exclude_ssid": "Exclude SSID",
+                "exclude_device": "Exclude Device",
+                "exclude_network": "Exclude Network"
+            }
+        }
+    },
     "config": {
         "error": {
-            "required_ge_1": "Must be greater than or equal to 1",
-            "required_ge_0": "Must be greater than or equal to 0",
-            "password_missing": "Password is missing",
-            "username_missing": "Username is missing",
-            "requires_username_password": "Requires username and password to be set",
-            "comma_separated_numbers": "Must be a comma-separated list of numbers",
-            "comma_separated_macs": "Must be a comma-separated list of MAC Addresses",
-            "user_pass_authentication_failed": "Username/Password Authentication Failed",
-            "api_authentication_failed": "API Authentication Failed"
+            "required_ge_1": "[%key:common::config_flow::error::required_ge_1%]",
+            "required_ge_0": "[%key:common::config_flow::error::required_ge_0%]",
+            "password_missing": "[%key:common::config_flow::error::password_missing%]",
+            "username_missing": "[%key:common::config_flow::error::username_missing%]",
+            "requires_username_password": "[%key:common::config_flow::error::requires_username_password%]",
+            "comma_separated_numbers": "[%key:common::config_flow::error::comma_separated_numbers%]",
+            "comma_separated_macs": "[%key:common::config_flow::error::comma_separated_macs%]",
+            "user_pass_authentication_failed": "[%key:common::config_flow::error::user_pass_authentication_failed%]",
+            "api_authentication_failed": "[%key:common::config_flow::error::api_authentication_failed%]",
+            "base_url_exists": "[%key:common::config_flow::error::base_url_exists%]"
         },
         "step": {
             "user": {
-                "description": "GWN Manager Configuration",
                 "data": {
-                    "app_id": "GWN Manager Application ID",
-                    "secret_key": "GWN Manager Secret Key",
-                    "restricted_api": "GWN Manager Restricted API Enabled",
-                    "username": "Username",
-                    "password": "Password",
-                    "base_url": "GWN Manager URL",
-                    "page_size": "Page Size",
-                    "max_pages": "Max Pages",
-                    "refresh_period_s": "Refresh Period (seconds)",
-                    "exclude_passphrase": "Exclude Passphrases",
-                    "exclude_ssid": "Exclude SSID",
-                    "exclude_device": "Exclude Device",
-                    "exclude_network": "Exclude Network",
-                    "ignore_failed_fetch_before_update": "Ignore Failed Fetch Before Update",
-                    "ssid_name_to_device_binding": "SSID Name to Device Binding",
-                    "no_publish": "Disable Publish"
+                    "app_id": "[%key:common::config_flow::data::app_id%]",
+                    "secret_key": "[%key:common::config_flow::data::secret_key%]",
+                    "restricted_api": "[%key:common::config_flow::data::restricted_api%]",
+                    "username": "[%key:common::config_flow::data::username%]",
+                    "password": "[%key:common::config_flow::data::password%]",
+                    "base_url": "[%key:common::config_flow::data::base_url%]",
+                    "page_size": "[%key:common::config_flow::data::page_size%]",
+                    "max_pages": "[%key:common::config_flow::data::max_pages%]",
+                    "refresh_period_s": "[%key:common::config_flow::data::refresh_period_s%]",
+                    "exclude_passphrase": "[%key:common::config_flow::data::exclude_passphrase%]",
+                    "exclude_ssid": "[%key:common::config_flow::data::exclude_ssid%]",
+                    "exclude_device": "[%key:common::config_flow::data::exclude_device%]",
+                    "exclude_network": "[%key:common::config_flow::data::exclude_network%]"
+                }
+            }
+        }
+    },
+    "options": {
+        "error": {
+            "required_ge_1": "[%key:common::config_flow::error::required_ge_1%]",
+            "required_ge_0": "[%key:common::config_flow::error::required_ge_0%]",
+            "password_missing": "[%key:common::config_flow::error::password_missing%]",
+            "username_missing": "[%key:common::config_flow::error::username_missing%]",
+            "requires_username_password": "[%key:common::config_flow::error::requires_username_password%]",
+            "comma_separated_numbers": "[%key:common::config_flow::error::comma_separated_numbers%]",
+            "comma_separated_macs": "[%key:common::config_flow::error::comma_separated_macs%]",
+            "user_pass_authentication_failed": "[%key:common::config_flow::error::user_pass_authentication_failed%]",
+            "api_authentication_failed": "[%key:common::config_flow::error::api_authentication_failed%]",
+            "base_url_exists": "[%key:common::config_flow::error::base_url_exists%]"
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "app_id": "[%key:common::config_flow::data::app_id%]",
+                    "secret_key": "[%key:common::config_flow::data::secret_key%]",
+                    "restricted_api": "[%key:common::config_flow::data::restricted_api%]",
+                    "username": "[%key:common::config_flow::data::username%]",
+                    "password": "[%key:common::config_flow::data::password%]",
+                    "base_url": "[%key:common::config_flow::data::base_url%]",
+                    "page_size": "[%key:common::config_flow::data::page_size%]",
+                    "max_pages": "[%key:common::config_flow::data::max_pages%]",
+                    "refresh_period_s": "[%key:common::config_flow::data::refresh_period_s%]",
+                    "exclude_passphrase": "[%key:common::config_flow::data::exclude_passphrase%]",
+                    "exclude_ssid": "[%key:common::config_flow::data::exclude_ssid%]",
+                    "exclude_device": "[%key:common::config_flow::data::exclude_device%]",
+                    "exclude_network": "[%key:common::config_flow::data::exclude_network%]"
                 }
             }
         }

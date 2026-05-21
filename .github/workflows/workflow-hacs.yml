@@ -20,7 +20,7 @@ jobs:
   hacs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Apply version override to workspace metadata
         uses: ./.github/actions/apply-version
@@ -39,7 +39,7 @@ jobs:
           echo "python_version=$(python -c 'from meta_data.project_meta import PYTHON_VERSION; print(PYTHON_VERSION)')" >> "$GITHUB_OUTPUT"
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ steps.meta.outputs.python_version }}
 

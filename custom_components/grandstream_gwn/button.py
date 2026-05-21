@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Callable
 from typing import Any
 
@@ -12,14 +13,20 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import GwnDataUpdateCoordinator
+from .gwn_common import GwnCommon
 from .sensor import _networks
 from gwn.constants import Constants
 
+_LOGGER = logging.getLogger(Constants.LOG)
+
 def create_entity(current_unique_ids: set[str], cached_unique_ids: set[str], new_entities: list[GwnButtonEntity], entity_type: Callable[[GwnDataUpdateCoordinator, dict[str, Any], str, str], GwnButtonEntity], coordinator: GwnDataUpdateCoordinator, data: dict[str, Any], key: str, name_suffix: str) -> None:
-    entity: GwnButtonEntity = entity_type(coordinator, data, key, name_suffix)
-    current_unique_ids.add(entity.gwn_unique_id())
-    if entity.gwn_unique_id() not in cached_unique_ids:
-        new_entities.append(entity) # cache entities to detect later removal
+    try:
+        entity: GwnButtonEntity = entity_type(coordinator, data, key, name_suffix)
+        current_unique_ids.add(entity.gwn_unique_id())
+        if entity.gwn_unique_id() not in cached_unique_ids:
+            new_entities.append(entity) # cache entities to detect later removal
+    except Exception as e:
+        _LOGGER.error(f"Failed to create a Button Entity with Key {key}: {e}")
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coordinator: GwnDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
@@ -39,15 +46,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                     create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceButton, coordinator, device, Constants.RESET, "Reset")
                     create_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceButton, coordinator, device, Constants.UPDATE_FIRMWARE, "Update Firmware")
 
-        # Remove any device that is not in the cache since it likely means they are have been removed from gwn manager (removed network, device or ssid)
-        removed_unique_ids = cached_unique_ids - current_unique_ids
-        for unique_id in removed_unique_ids:
-            network_entity_id: str | None = entity_registry.async_get_entity_id("button", DOMAIN, unique_id)
-            if network_entity_id is not None:
-                entity_registry.async_remove(network_entity_id)
-        if len(new_entities) > 0:
-            async_add_entities(new_entities)
-        cached_unique_ids = current_unique_ids
+        cached_unique_ids = GwnCommon.update_entities("button", entry, cached_unique_ids, current_unique_ids, new_entities, entity_registry, async_add_entities)
 
     _sync_entities()
     entry.async_on_unload(coordinator.async_add_listener(_sync_entities))
@@ -60,9 +59,10 @@ class GwnButtonEntity(CoordinatorEntity[GwnDataUpdateCoordinator], ButtonEntity)
         self._root_id = root_id
         self._key: str = key
         self._name: str = name
+        self._base: str = base
 
         self._attr_name: str = name_suffix
-        self._attr_unique_id: str = f"{base}_{self._root_id}_{key}"
+        self._attr_unique_id: str = f"{self._coordinator.unique_identifier()}_{self._base}_{self._root_id}_{key}"
 
     def gwn_unique_id(self) -> str:
         return self._attr_unique_id
@@ -82,7 +82,7 @@ class GwnDeviceButton(GwnButtonEntity):
         if self._current_data() is None:
             return None
         return {
-            "identifiers": {(DOMAIN, f"device_{self._root_id}")},
+            "identifiers": {(DOMAIN, f"{self._base}_{self._root_id}_{self._coordinator.unique_identifier()}")},
             "name": self._name,
             "manufacturer": "Grandstream",
             "model": self._ap_type,

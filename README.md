@@ -12,7 +12,9 @@
 
 GG-HAM (Grandstream GWN - Home Assistant/MQTT) is a project created for the desire to automate some capability found with Grandstream network products, particularly Access Points. This tool is meant to serve as a way of viewing and controlling Grandstream Networks, Devices and SSIDs using the GWN Manager and be easy to integrate with tools like Home Assistant and Node Red. It is not meant as a replacement for GWN Manager but rather a supplement to it.
 
-It is made up of a Library, an MQTT Bridge application with support for Home Assistant Discovery and a Home Assistant Integration. This tool is not endorsed, affiliated nor supported by Grandstream.
+It is made up of a Library, an MQTT Bridge application with support for Home Assistant Discovery and a Home Assistant Integration.
+
+> **Disclaimer:** This tool is not endorsed, affiliated nor supported by Grandstream.
 
 ## Project Overview
 
@@ -113,6 +115,10 @@ The GWN Library is a standalone package that can be used for interacting with th
 All classes are designed to be accessible by the calling application, though `api/GwnInterface.py` and `authentication/GwnToken.py` are primarily used by the library internals
 
 - `GwnClient` serves as the main interface to the library
+- `requests` houses the classes that should be populated with the data to send to GWN Manager
+- `responses` houses the classes that expose the data returned by GWN Manager
+
+> *NOTE*: `upTime` in the `GwnDevice` class will only update/change value regardless of polling approximately every `300 seconds/5 minutes`, therefore, the results should be cached and recalculated to accurately determine the correct value as it will likely currently fluctuate between a series of values based on the refresh period
 
 ## Library Configuration Options
 
@@ -163,7 +169,7 @@ The recommended way of installing the integration is via [HACS](https://www.hacs
 7. Copy the folder `grandstream_gwn` to your `homeassistant/custom_components/` directory
 8. Restart Home Assistant
 9. In Home Assistant, go to `Settings`->`Integrations`->`Add integration`
-10. Search for `Grandstream GWN Manager Bridge` and configure the integration per the [Library Configuration Options](#library-configuration-options)
+10. Search for `Grandstream GWN Manager Bridge` and configure the integration per the [Configuration](#configuration-options)
 
 ## Uninstallation
 
@@ -171,6 +177,21 @@ The recommended way of installing the integration is via [HACS](https://www.hacs
 2. If using HACS search for `Grandstream GWN Manager Bridge` -> Click the 3 dots on the entry then click `Remove`
 3. If not using HACS delete the folder `homeassistant/custom_components/grandstream_gwn`
 4. Restart Home Assistant
+
+## Configuration Options
+
+The configuration options are as specified per the [Library Configuration Options](#library-configuration-options) sections, however, the following options are fixed and cannot be modified
+
+- `ignore_failed_fetch_before_update`: False
+- `ssid_name_to_device_binding`: True
+- `no_publish`: False
+
+The following options are specified as a comma seperated list (E.g. `1,4,6` or `AA:BB:CC:DD:EE:FF, A1-B2-C3-D4-E5-F6`)
+
+- `exclude_passphrase`
+- `exclude_ssid`
+- `exclude_device`
+- `exclude_network`
 
 # GWN MQTT Bridge
 
@@ -600,7 +621,7 @@ These examples below are the shape of what the application publishes over MQTT
   "mac": "AA:BB:CC:DD:EE:FF",
   "name": "Lobby AP",
   "ip": "192.168.1.10",
-  "lastBoot": "2026-05-17 15:42:08.123456",
+  "lastBoot": "2026-05-15 11:13:00+00:00",
   "usage": 6695047434,
   "upload": 343241087,
   "download": 6351806347,
@@ -625,7 +646,7 @@ These examples below are the shape of what the application publishes over MQTT
   "channelload_2g4": 10,
   "channelload_5g": 20,
   "channelload_6g": 0,
-  "cpuUsage": 5,
+  "cpuUsage": 5.0,
   "ap_2g4_channel": 0,
   "ap_5g_channel": 36,
   "ap_6g_channel": 0,
