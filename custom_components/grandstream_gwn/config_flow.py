@@ -21,15 +21,12 @@ from .const import (
     EXCLUDE_PASSPHRASE_CONFIG_KEY,
     EXCLUDE_SSID_CONFIG_KEY,
     FLOW_ID_KEY,
-    IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY,
     MAX_PAGES_CONFIG_KEY,
-    NO_PUBLISH_CONFIG_KEY,
     PAGE_SIZE_CONFIG_KEY,
     PASSWORD_CONFIG_KEY,
     REFRESH_PERIOD_S_CONFIG_KEY,
     RESTRICTED_API_CONFIG_KEY,
     SECRET_KEY_CONFIG_KEY,
-    SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY,
     USERNAME_CONFIG_KEY
 )
 from .gwn_lib_interface import GwnLibInterface
@@ -162,17 +159,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 else:
                     data[BASE_URL_CONFIG_KEY] = base_url
 
-            ignore_failed_fetch_before_update = user_input.get(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY)
-            if ignore_failed_fetch_before_update is not None:
-                data[IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY] = bool(ignore_failed_fetch_before_update)
-
-            ssid_name_to_device_binding = user_input.get(SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY)
-            if ssid_name_to_device_binding is not None:
-                data[SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY] = bool(ssid_name_to_device_binding)
-
-            no_publish = user_input.get(NO_PUBLISH_CONFIG_KEY)
-            if no_publish is not None:
-                data[NO_PUBLISH_CONFIG_KEY] = bool(no_publish)
             if len(errors) == 0:
                 
                 gwn_config: GwnConfig = GwnLibInterface.build_gwn_config(data)
@@ -211,9 +197,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional(EXCLUDE_SSID_CONFIG_KEY, description={"suggested_value": input_overrides.get(EXCLUDE_SSID_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_ssid))}): str,
                 vol.Optional(EXCLUDE_DEVICE_CONFIG_KEY, description={"suggested_value": input_overrides.get(EXCLUDE_DEVICE_CONFIG_KEY, ",".join(defaults.exclude_device))}): str,
                 vol.Optional(EXCLUDE_NETWORK_CONFIG_KEY, description={"suggested_value": input_overrides.get(EXCLUDE_NETWORK_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_network))}): str,
-                vol.Optional(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY, default=input_overrides.get(IGNORE_FAILED_FETCH_BEFORE_UPDATE_CONFIG_KEY, defaults.ignore_failed_fetch_before_update)): bool,
-                vol.Optional(SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY, default=input_overrides.get(SSID_NAME_TO_DEVICE_BINDING_CONFIG_KEY, defaults.ssid_name_to_device_binding)): bool,
-                vol.Optional(NO_PUBLISH_CONFIG_KEY, default=input_overrides.get(NO_PUBLISH_CONFIG_KEY, defaults.no_publish)): bool
             }
         )
 
