@@ -12,7 +12,8 @@
 
 GG-HAM (Grandstream GWN - Home Assistant/MQTT) is a project created for the desire to automate some capability found with Grandstream network products, particularly Access Points. This tool is meant to serve as a way of viewing and controlling Grandstream Networks, Devices and SSIDs using the GWN Manager and be easy to integrate with tools like Home Assistant and Node Red. It is not meant as a replacement for GWN Manager but rather a supplement to it.
 
-It is made up of a Library, an MQTT Bridge application with support for Home Assistant Discovery and a Home Assistant Integration. This tool is not endorsed, affiliated nor supported by Grandstream.
+It is made up of a Library, an MQTT Bridge application with support for Home Assistant Discovery and a Home Assistant Integration. 
+> **Disclaimer:** This tool is not endorsed, affiliated nor supported by Grandstream.
 
 ## Project Overview
 
