@@ -76,7 +76,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                 create_device_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSensor, coordinator, device, Constants.NEW_FIRMWARE, "Available Firmware")
                 create_device_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSensor, coordinator, device, Constants.CPU_USAGE, "CPU Usage", "%")
                 create_device_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSensor, coordinator, device, Constants.TEMPERATURE, "Temperature", "°C", SensorDeviceClass.TEMPERATURE)
-                create_device_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSensor, coordinator, device, Constants.LAST_BOOT, "Up Time", None, SensorDeviceClass.UPTIME)
+                create_device_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceUptimeSensor, coordinator, device, Constants.LAST_BOOT, "Up Time", None, SensorDeviceClass.UPTIME)
                 create_device_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSensor, coordinator, device, Constants.CHANNEL_2_4, "Current 2.4GHz Channel")
                 create_device_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSensor, coordinator, device, Constants.CHANNEL_5, "Current 5GHz Channel")
                 create_device_entity(current_unique_ids, cached_unique_ids, new_entities, GwnDeviceSensor, coordinator, device, Constants.CHANNEL_6, "Current 6GHz Channel")
@@ -205,6 +205,23 @@ class GwnDeviceSensor(GwnSensorEntity):
             self._name = device[Constants.AP_NAME]
             self._network_id = device[Constants.NETWORK_ID]
         return device
+
+class GwnDeviceUptimeSensor(GwnDeviceSensor):
+    def __init__(self, coordinator: GwnDataUpdateCoordinator, device: dict[str, Any], key: str, name_suffix: str, unit: str | None, device_class: SensorDeviceClass | None, default_value: Any | None) -> None:
+        super().__init__(coordinator, device, key, name_suffix, unit, device_class, default_value)
+        self._cached_last_boot: dt.datetime | None = None
+
+    @property
+    def native_value(self) -> None | str | int | float | bool | dt.datetime:
+        device: dict[str, Any] | None = self._current_data()
+        if device is None:
+            return self._default_value
+
+        if self._cached_last_boot is not None and ((abs(self._cached_last_boot - device[Constants.LAST_BOOT])).total_seconds() < 360):
+            device[Constants.LAST_BOOT] = self._cached_last_boot
+        self._cached_last_boot = device[Constants.LAST_BOOT]
+
+        return device.get(self._key, self._default_value)
 
 class GwnSSIDSensor(GwnSensorEntity):
     def __init__(self, coordinator: GwnDataUpdateCoordinator, ssid: dict[str, Any], key: str, name_suffix: str, device_class: SensorDeviceClass | None, default_value: Any | None) -> None:
