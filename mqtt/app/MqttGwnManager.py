@@ -1,4 +1,5 @@
 import asyncio
+import datetime as dt
 import logging
 from enum import Enum
 from typing import Any
@@ -150,6 +151,15 @@ class MqttGwnManager:
             try:
                 assignments: list[GwnSSID] = device_assignments.get(gwn_device.mac, [])
                 device_payload = self._serialise_device(gwn_network, gwn_device, assignments)
+
+                # since the last boot can fluctuate, use the cached value instead to stabilise and only reuse if the new datetime occurs within 6 minutes
+                # as it appears to refresh every 5 minutes
+                if (gwn_network.id in cached_devices and gwn_device.mac in cached_devices[gwn_network.id] and
+                    abs(
+                        (dt.datetime.fromisoformat(str(cached_devices[gwn_network.id][gwn_device.mac][Constants.LAST_BOOT])) - gwn_device.lastBoot)
+                        .total_seconds()) < 360):
+                    device_payload[Constants.LAST_BOOT] = cached_devices[gwn_network.id][gwn_device.mac][Constants.LAST_BOOT]
+
                 # copy the cache because all networks need to be recorded so that if a discovery publish fails, it will reattempt on next cycle
                 cached_payload = device_payload.copy()
                 cached_payload[Constants.CACHE] = dict(sorted(network_names.items()))
