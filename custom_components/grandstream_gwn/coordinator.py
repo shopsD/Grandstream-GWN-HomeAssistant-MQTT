@@ -1,6 +1,6 @@
 import logging
 import re
-from datetime import timedelta
+import datetime as dt
 from enum import Enum
 from typing import Any
 
@@ -28,7 +28,7 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
             hass,
             logger=_LOGGER,
             name="Grandstream GWN",
-            update_interval=timedelta(seconds=self._gwn_config.refresh_period_s)
+            update_interval=dt.timedelta(seconds=self._gwn_config.refresh_period_s)
         )
 
     def _enum_value(self, value: Enum | None) -> str | None:
@@ -70,7 +70,7 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
             Constants.MAC: gwn_device.mac,
             Constants.AP_NAME: gwn_device.name,
             Constants.IPV4: gwn_device.ip,
-            Constants.LAST_BOOT: gwn_device.lastBoot,
+            Constants.LAST_BOOT: str(dt.datetime.now(dt.UTC).replace(microsecond=0) - dt.timedelta(seconds=gwn_device.upTime)),
             Constants.USAGE: gwn_device.usage_bytes,
             Constants.UPLOAD: gwn_device.upload_bytes,
             Constants.DOWNLOAD: gwn_device.download_bytes,
@@ -144,6 +144,11 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
                         device_assignments[gwn_device.mac] = []
                     device_assignments[gwn_device.mac].append(gwn_ssid)
             for gwn_device in gwn_network.devices:
+                # abs(
+                #         (dt.datetime.fromisoformat(str(cached_devices[gwn_network.id][gwn_device.mac][Constants.LAST_BOOT])) - dt.datetime.fromisoformat(str(device_payload[Constants.LAST_BOOT])))
+                #         .total_seconds()) < 360):
+                #     device_payload[Constants.LAST_BOOT] = cached_devices[gwn_network.id][gwn_device.mac][Constants.LAST_BOOT]
+
                 device_list[gwn_device.mac] = self._serialise_device(gwn_network, gwn_device, device_assignments.get(gwn_device.mac, []), full_network_dict)
             network_list[gwn_network.id] = self._serialise_network(gwn_network, ssid_list, device_list)
 

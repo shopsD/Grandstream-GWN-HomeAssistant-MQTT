@@ -156,7 +156,7 @@ class MqttGwnManager:
                 # as it appears to refresh every 5 minutes
                 if (gwn_network.id in cached_devices and gwn_device.mac in cached_devices[gwn_network.id] and
                     abs(
-                        (dt.datetime.fromisoformat(str(cached_devices[gwn_network.id][gwn_device.mac][Constants.LAST_BOOT])) - gwn_device.lastBoot)
+                        (dt.datetime.fromisoformat(str(cached_devices[gwn_network.id][gwn_device.mac][Constants.LAST_BOOT])) - dt.datetime.fromisoformat(str(device_payload[Constants.LAST_BOOT])))
                         .total_seconds()) < 360):
                     device_payload[Constants.LAST_BOOT] = cached_devices[gwn_network.id][gwn_device.mac][Constants.LAST_BOOT]
 
@@ -384,7 +384,7 @@ class MqttGwnManager:
             Constants.MAC: gwn_device.mac,
             Constants.AP_NAME: gwn_device.name,
             Constants.IPV4: gwn_device.ip,
-            Constants.LAST_BOOT: str(gwn_device.lastBoot),
+            Constants.LAST_BOOT: str(dt.datetime.now(dt.UTC).replace(microsecond=0) - dt.timedelta(seconds=gwn_device.upTime)),
             Constants.USAGE: gwn_device.usage_bytes,
             Constants.UPLOAD: gwn_device.upload_bytes,
             Constants.DOWNLOAD: gwn_device.download_bytes,
