@@ -7,9 +7,11 @@ ROOT_NAME="gwn"
 
 integration_root: Path = Path("custom_components/grandstream_gwn")
 archive_root: Path = Path("dist/hacs")
+assets_root: Path = Path("assets")
 library_root: Path = Path(ROOT_NAME)
 hacs_archive_root: Path = archive_root / library_root
 translations_root: Path = archive_root / "translations"
+brands_root: Path = archive_root / "brand"
 
 ignore_patterns: set[str] = set(["__pycache__*", "*.pyc", "*.pyo"])
 
@@ -88,6 +90,12 @@ def _rewrite_import_line(target_file: Path, match: re.Match[str]) -> str:
             rewritten_lines.append(f"{indent}from .{ROOT_NAME}.{'.'.join(target_parts[:-1])} import {imported_name}{import_suffix}")
 
     return "\n".join(rewritten_lines)
+
+def _setup_assets() -> None:
+    if assets_root.exists() and assets_root.is_dir():
+        if not brands_root.exists():
+            brands_root.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(assets_root / "logo.png", brands_root / "icon.png")
 
 def _setup_directory_structure() -> None:
     if archive_root.exists() and archive_root.is_dir():
@@ -174,6 +182,7 @@ def _expand_translation_files() -> None:
 
 def main() -> None:
     _setup_directory_structure()
+    _setup_assets()
     staged_files: list[Path] = sorted(archive_root.rglob("*.py"))
     for target_file in staged_files:
         content: str = target_file.read_text(encoding="utf-8")
