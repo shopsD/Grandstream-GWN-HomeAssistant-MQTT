@@ -36,7 +36,7 @@ jobs:
     name: docker-publish
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Apply version override to workspace metadata
         uses: ./.github/actions/apply-version

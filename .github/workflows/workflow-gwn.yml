@@ -31,7 +31,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Apply version override to workspace metadata
       uses: ./.github/actions/apply-version
@@ -58,7 +58,7 @@ jobs:
         echo "package_version=${PACKAGE_VERSION}" >> "$GITHUB_OUTPUT"
 
     - name: Set up Python ${{ steps.meta.outputs.python_version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ steps.meta.outputs.python_version }}
 
