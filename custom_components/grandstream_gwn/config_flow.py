@@ -233,7 +233,7 @@ class OptionsFlowHandler(OptionsFlow):
             return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(current_data, True), errors={})
         # base url can't be editied since True is passed in to the create_config_schema so no need to fetch all existing entries to check against
         flow_data: FlowData = await ConfigFlow.build_and_validate_config(flow_id, [], user_input, previous_username, previous_password)
-        
+
         if not flow_data.authenticated:
             return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(flow_data.user_input, True), errors=flow_data.errors)
         self.hass.data.setdefault(DOMAIN, {})

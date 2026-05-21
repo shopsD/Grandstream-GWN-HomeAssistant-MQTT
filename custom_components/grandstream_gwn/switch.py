@@ -77,9 +77,10 @@ class GwnSwitchEntity(CoordinatorEntity[GwnDataUpdateCoordinator], SwitchEntity)
         self._root_id = root_id
         self._key: str = key
         self._name: str = name
+        self._base: str = base
 
         self._attr_name: str = name_suffix
-        self._attr_unique_id: str = f"{self._coordinator.unique_identifier()}_{base}_{self._root_id}_{key}"
+        self._attr_unique_id: str = f"{self._coordinator.unique_identifier()}_{self._base}_{self._root_id}_{key}"
 
     async def _toggle_value(self, value: bool) -> bool:
         return False
@@ -120,7 +121,7 @@ class GwnSSIDSwitch(GwnSwitchEntity):
         if self._current_data() is None:
             return None
         return {
-            "identifiers": {(DOMAIN, f"device_{self._root_id}_{self._coordinator.unique_identifier()}")},
+            "identifiers": {(DOMAIN, f"{self._base}_{self._root_id}_{self._coordinator.unique_identifier()}")},
             "name": self._name,
             "manufacturer": "Grandstream",
             "model": self._model
