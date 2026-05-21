@@ -162,7 +162,7 @@ class GwnDeviceSensor(GwnSensorEntity):
 
         network_id: str = device[Constants.NETWORK_ID]
         device_mac: str = device[Constants.MAC]
-        name: str = device.get(Constants.AP_TYPE, device_mac)
+        name: str = device.get(Constants.AP_TYPE) or device_mac
         super().__init__(coordinator, network_id, device_mac, key, name, name_suffix, device_class, "device")
         if unit is not None:
             self._attr_native_unit_of_measurement: str = unit
