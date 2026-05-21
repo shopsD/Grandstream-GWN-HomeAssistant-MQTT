@@ -152,8 +152,8 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
     def is_readonly(self) -> bool:
         return self._gwn_client.is_readonly
 
-    def unique_url_id(self) -> str:
-        return self._unique_id
+    def unique_identifier(self) -> str:
+        return self._entry.entry_id
 
     async def async_set_network_value(self, network_id: str, key: str, value: str) -> bool:
         payload: GwnNetworkPayload = GwnNetworkPayload(id=int(network_id))
