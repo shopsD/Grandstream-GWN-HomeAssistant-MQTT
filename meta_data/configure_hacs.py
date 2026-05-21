@@ -134,17 +134,19 @@ def _remove_key_path(document: dict[str, object], key_path: str) -> None:
         current.pop(parts[-1], None)
 
 def _prune_empty_containers(value: object) -> object | None:
+    pruned_value: object | None = None
     if isinstance(value, dict):
         pruned_dict: dict[str, object] = {}
         for key, nested_value in value.items():
-            pruned_value: object | None = _prune_empty_containers(nested_value)
+            pruned_value = _prune_empty_containers(nested_value)
             if pruned_value is not None:
                 pruned_dict[key] = pruned_value
         return None if len(pruned_dict) == 0 else pruned_dict
+    pruned_value = None
     if isinstance(value, list):
         pruned_list: list[object] = []
         for nested_value in value:
-            pruned_value: object | None = _prune_empty_containers(nested_value)
+            pruned_value = _prune_empty_containers(nested_value)
             if pruned_value is not None:
                 pruned_list.append(pruned_value)
         return None if len(pruned_list) == 0 else pruned_list
@@ -153,7 +155,10 @@ def _prune_empty_containers(value: object) -> object | None:
 def _expand_translation_file(path: Path) -> None:
     document: dict[str, object] = json.loads(path.read_text(encoding="utf-8"))
     used_key_paths: set[str] = set()
-    expanded_document: dict[str, object] = _expand_translation_value(document, document, used_key_paths)
+    expanded_document_raw: object = _expand_translation_value(document, document, used_key_paths)
+    if not isinstance(expanded_document_raw, dict):
+        raise RuntimeError(f"Expanded translation file is not a dictionary: {path}")
+    expanded_document: dict[str, object] = expanded_document_raw
     for key_path in sorted(used_key_paths, key=lambda value: value.count("::"), reverse=True):
         _remove_key_path(expanded_document, key_path)
     pruned_document: object | None = _prune_empty_containers(expanded_document)
