@@ -118,7 +118,7 @@ All classes are designed to be accessible by the calling application, though `ap
 - `requests` houses the classes that should be populated with the data to send to GWN Manager
 - `responses` houses the classes that expose the data returned by GWN Manager
 
-*NOTE*: `upTime` (and as a result, `lastBoot`) in the `GwnDevice` class only update approximately every `300 seconds/5 minutes`, therefore, the results should be cached and recalculated to accurately determine the correct value for `lastBoot` as `lastBoot` will currently fluctuate between a series of values based ont the refresh period
+> *NOTE*: `upTime` in the `GwnDevice` class will only update/change value regardless of polling approximately every `300 seconds/5 minutes`, therefore, the results should be cached and recalculated to accurately determine the correct value as it will likely currently fluctuate between a series of values based on the refresh period
 
 ## Library Configuration Options
 
