@@ -70,7 +70,7 @@ class GwnDataUpdateCoordinator(DataUpdateCoordinator):
             Constants.MAC: gwn_device.mac,
             Constants.AP_NAME: gwn_device.name,
             Constants.IPV4: gwn_device.ip,
-            Constants.LAST_BOOT: gwn_device.last_boot,
+            Constants.LAST_BOOT: gwn_device.lastBoot,
             Constants.USAGE: gwn_device.usage_bytes,
             Constants.UPLOAD: gwn_device.upload_bytes,
             Constants.DOWNLOAD: gwn_device.download_bytes,

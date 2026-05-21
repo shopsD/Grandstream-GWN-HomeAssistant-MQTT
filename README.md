@@ -113,6 +113,10 @@ The GWN Library is a standalone package that can be used for interacting with th
 All classes are designed to be accessible by the calling application, though `api/GwnInterface.py` and `authentication/GwnToken.py` are primarily used by the library internals
 
 - `GwnClient` serves as the main interface to the library
+- `requests` houses the classes that should be populated with the data to send to GWN Manager
+- `responses` houses the classes that expose the data returned by GWN Manager
+
+*NOTE*: `upTime` (and as a result, `lastBoot`) in the `GwnDevice` class only update approximately every `300 seconds/5 minutes`, therefore, the results should be cached and recalculated to accurately determine the correct value for `lastBoot` as `lastBoot` will currently fluctuate between a series of values based ont the refresh period
 
 ## Library Configuration Options
 
