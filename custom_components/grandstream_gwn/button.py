@@ -74,7 +74,7 @@ class GwnDeviceButton(GwnButtonEntity):
 
         network_id: str = device[Constants.NETWORK_ID]
         device_mac: str = device[Constants.MAC]
-        name: str = device[Constants.AP_NAME]
+        name: str = device.get(Constants.AP_TYPE) or device_mac
         super().__init__(coordinator, network_id, device_mac, key, name, name_suffix, "device")
 
     @property
@@ -109,7 +109,7 @@ class GwnDeviceButton(GwnButtonEntity):
             # update the stored data to the newer one
             self._ap_type = device[Constants.AP_TYPE]
             self._sw_version = device[Constants.CURRENT_FIRMWARE]
-            self._name = device[Constants.AP_NAME]
+            self._name = device.get(Constants.AP_TYPE) or self._root_id
             self._network_id = device[Constants.NETWORK_ID]
         return device
 

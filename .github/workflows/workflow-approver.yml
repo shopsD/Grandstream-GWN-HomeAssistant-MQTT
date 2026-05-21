@@ -1,0 +1,35 @@
+name: workflow-approver
+
+on:
+  workflow_dispatch:
+    inputs:
+      approval_comment:
+        description: Approval comment
+        required: false
+        type: string
+      pr_number:
+        description: Pull Request Number
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  approve:
+    runs-on: ubuntu-latest
+    name: workflow-approver
+
+    steps:
+      - name: Submit approving review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          APPROVAL_COMMENT: ${{ inputs.approval_comment }}
+        run: |
+          if [ -n "${APPROVAL_COMMENT}" ]; then
+            gh pr review "${PR_NUMBER}" --repo "${{ github.repository }}" --approve --body "${APPROVAL_COMMENT}"
+          else
+            gh pr review "${PR_NUMBER}" --repo "${{ github.repository }}" --approve
+          fi
