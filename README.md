@@ -269,7 +269,7 @@ To build manually, either clone the repository using `git clone` or download the
 
 Edit the `docker-compose.yml` file and replace the following line
 ```yaml
-  image: ghcr.io/shopsD/homeassistant-grandstream-gwn:latest
+  image: ghcr.io/shopsD/grandstream-gwn-homeassistant-mqtt:latest
 ```
 with
 ```yaml
@@ -292,7 +292,7 @@ docker run -d \
   --name gwn-mqtt-bridge \
   --restart unless-stopped \
   -v "./config:/config" \
-  ghcr.io/shopsd/homeassistant-grandstream-gwn:latest
+  ghcr.io/shopsd/grandstream-gwn-homeassistant-mqtt:latest
 ```
 
 Once it has finished building or downloading, if you want to generate a hashed password you can run the command
@@ -301,7 +301,7 @@ docker exec -it gwn-mqtt-bridge gwn_mqtt -p
 ```
 or if not using compose
 ```bash
-docker run --rm -it ghcr.io/shopsd/homeassistant-grandstream-gwn:latest -p
+docker run --rm -it ghcr.io/shopsd/grandstream-gwn-homeassistant-mqtt:latest -p
 ```
 
 to interactively generate the hashed password or 
@@ -310,7 +310,7 @@ docker exec -it gwn-mqtt-bridge gwn_mqtt -p <your_plaintext_password>
 ```
 or if not using compose
 ```bash
-docker run --rm -it ghcr.io/shopsd/homeassistant-grandstream-gwn:latest -p <your_plaintext_password>
+docker run --rm -it ghcr.io/shopsd/grandstream-gwn-homeassistant-mqtt:latest -p <your_plaintext_password>
 ```
 to non-interactively generate the hashed password
 
@@ -324,8 +324,10 @@ docker compose run --rm gwn-mqtt-bridge -u
 ```
 or if not using compose
 ```bash
-docker run --rm -it ghcr.io/shopsd/homeassistant-grandstream-gwn:latest -u
+docker run -v "./config:/config" --rm -it ghcr.io/shopsd/grandstream-gwn-homeassistant-mqtt:latest -u
 ```
+
+__Remember to replace `./config` with the folder to the folder on your host containing the `config.yml` file__
 
 ## Definitions
 
