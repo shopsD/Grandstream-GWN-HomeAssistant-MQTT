@@ -99,13 +99,7 @@ class ConfigParser:
             if gwn_max_pages < 0:
                 raise ConfigParserError("gwn.max_pages must be >= 0")
             gwn_config.max_pages = gwn_max_pages
-        # gwn refresh period
-        gwn_refresh_period_s = gwn_section.get("refresh_period_s")
-        if gwn_refresh_period_s is not None:
-            gwn_refresh_period_s = int(gwn_refresh_period_s)
-            if gwn_refresh_period_s < 0:
-                raise ConfigParserError("gwn.refresh_period_s must be >= 0")
-            gwn_config.refresh_period_s = gwn_refresh_period_s
+
         # gwn exclude passphrase
         gwn_exclude_passphrase = gwn_section.get("exclude_passphrase")
         if gwn_exclude_passphrase:
@@ -166,7 +160,7 @@ class ConfigParser:
         no_publish = gwn_section.get("no_publish")
         if no_publish is not None:
             gwn_config.no_publish = bool(no_publish)
-        _LOGGER.debug(f"GWN Config|User/Password Provided: '{bool(gwn_config.username and gwn_config.password)}'|Using Restricted API: '{gwn_config.restricted_api}'|No Publish: '{gwn_config.no_publish}'|URL: '{gwn_config.base_url}'|Page Size: '{gwn_config.page_size}'|Max Pages: '{gwn_config.max_pages}'|Refresh Period: '{gwn_config.refresh_period_s}'|No. of Excluded Networks: '{len(gwn_config.exclude_network)}'|No. of Excluded Devices: '{len(gwn_config.exclude_device)}'|No. of excluded SSIDs: '{len(gwn_config.exclude_ssid)}'|No. of SSIDs with Excluded WEP/WPA Passphrase: '{len(gwn_config.exclude_passphrase)}'")
+        _LOGGER.debug(f"GWN Config|User/Password Provided: '{bool(gwn_config.username and gwn_config.password)}'|Using Restricted API: '{gwn_config.restricted_api}'|No Publish: '{gwn_config.no_publish}'|URL: '{gwn_config.base_url}'|Page Size: '{gwn_config.page_size}'|Max Pages: '{gwn_config.max_pages}'|No. of Excluded Networks: '{len(gwn_config.exclude_network)}'|No. of Excluded Devices: '{len(gwn_config.exclude_device)}'|No. of excluded SSIDs: '{len(gwn_config.exclude_ssid)}'|No. of SSIDs with Excluded WEP/WPA Passphrase: '{len(gwn_config.exclude_passphrase)}'")
 
         return gwn_config
 
@@ -359,7 +353,15 @@ class ConfigParser:
                 if update_check_period_s < 60:
                     raise ConfigParserError("app.update_check_period_s must be >= 60")
                 app_config.update_check_period_s = update_check_period_s
-        _LOGGER.debug(f"App Config|Publish on Poll: '{app_config.publish_every_poll}'|Unpublish Initial Data: '{app_config.unpublish_initial_data}'|Check for Updates: '{app_config.check_for_updates}'|Allow Pre-release Updates: '{app_config.allow_pre_release_update}'|Update Check Period: '{app_config.update_check_period_s}s'")
+            # app gwn refresh period
+            app_refresh_period_s = app_section.get("refresh_period_s")
+            if app_refresh_period_s is not None:
+                app_refresh_period_s = int(app_refresh_period_s)
+                if app_refresh_period_s < 0:
+                    raise ConfigParserError("gwn.refresh_period_s must be >= 0")
+                app_config.refresh_period_s = app_refresh_period_s
+                
+        _LOGGER.debug(f"App Config|Publish on Poll: '{app_config.publish_every_poll}'|Unpublish Initial Data: '{app_config.unpublish_initial_data}'|Check for Updates: '{app_config.check_for_updates}'|Allow Pre-release Updates: '{app_config.allow_pre_release_update}'|Update Check Period: '{app_config.update_check_period_s}s'|GWN Poll Period: '{app_config.refresh_period_s}'")
         return app_config
 
     @staticmethod

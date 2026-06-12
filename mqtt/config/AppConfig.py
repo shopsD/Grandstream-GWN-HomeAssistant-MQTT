@@ -7,3 +7,4 @@ class AppConfig:
     check_for_updates: bool = True
     allow_pre_release_update: bool = False
     update_check_period_s: int = 21600
+    refresh_period_s: int = 30 # number of seconds between each poll

@@ -7,6 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
+from .integration_config import IntegrationConfig
 from gwn.constants import Constants
 from gwn.api import GwnClient
 from gwn.authentication import GwnConfig
@@ -16,16 +17,16 @@ from gwn.response_data import GwnDevice, GwnNetwork, GwnSSID
 _LOGGER = logging.getLogger(Constants.LOG)
 
 class GwnDataUpdateCoordinator(DataUpdateCoordinator):
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, gwn_config: GwnConfig, gwn_client: GwnClient) -> None:
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, integration_config: IntegrationConfig, gwn_client: GwnClient) -> None:
         self._entry = entry
-        self._gwn_config: GwnConfig = gwn_config
+        self._gwn_config: GwnConfig = integration_config.gwn_config
         self._gwn_client: GwnClient = gwn_client
 
         super().__init__(
             hass,
             logger=_LOGGER,
             name="Grandstream GWN",
-            update_interval=dt.timedelta(seconds=self._gwn_config.refresh_period_s)
+            update_interval=dt.timedelta(seconds=integration_config.refresh_period_s)
         )
 
     def _enum_value(self, value: Enum | None) -> str | None:

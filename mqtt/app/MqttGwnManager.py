@@ -66,9 +66,9 @@ class MqttGwnManager:
                 self._mqtt_client.write_manifest()
             except Exception as e:
                 _LOGGER.error(f"Error updating manifest: {e}")
-            _LOGGER.info(f"Will refresh in {self._gwn_client.refresh_period}s")
+            _LOGGER.info(f"Will refresh in {self._config.refresh_period_s}s")
             try:
-                await asyncio.wait_for(self._poll_trigger.wait(), timeout=self._gwn_client.refresh_period)
+                await asyncio.wait_for(self._poll_trigger.wait(), timeout=self._config.refresh_period_s)
                 self._poll_trigger.clear()
             except asyncio.TimeoutError:
                 pass
@@ -625,7 +625,7 @@ class MqttGwnManager:
                     raise AuthenticationError("Failed to acquire access token from GWN Manager")
                 _LOGGER.info("Unpublishing all data from GWN Manager")
                 await self._unpublish_all_data()
-            _LOGGER.info("Unpublishing all data")
+            _LOGGER.info("Successfully unpublished all data")
         except Exception as e:
             _LOGGER.error(f"Failed to connect: {e}")
         finally:

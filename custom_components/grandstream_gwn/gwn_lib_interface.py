@@ -15,28 +15,14 @@ from .const import (
     SECRET_KEY_CONFIG_KEY,
     USERNAME_CONFIG_KEY
 )
+from .integration_config import IntegrationConfig
 from gwn.authentication import GwnConfig
 
 class GwnLibInterface:
 
     @staticmethod
-    def parse_int_list(value: str | list[int] | None) -> list[int]:
-        if isinstance(value, list):
-            return value
-        if value is None or value.strip() == "":
-            return []
-        return [int(item.strip()) for item in value.split(",") if item.strip()]
+    def _build_gwn_config(data: dict[str, Any]) -> GwnConfig:
 
-    @staticmethod
-    def parse_str_list(value: str | list[str] | None) -> list[str]:
-        if isinstance(value, list):
-            return value
-        if value is None or value.strip() == "":
-            return []
-        return [GwnConfig.normalise_mac(item.strip()) for item in value.split(",") if item.strip()]
-
-    @staticmethod
-    def build_gwn_config(data: dict[str, Any]) -> GwnConfig:
         gwn_config: GwnConfig = GwnConfig(app_id=str(data[APP_ID_CONFIG_KEY]), secret_key=str(data[SECRET_KEY_CONFIG_KEY]))
         restricted_api = data.get(RESTRICTED_API_CONFIG_KEY)
         if restricted_api is not None:
@@ -56,9 +42,6 @@ class GwnLibInterface:
         max_pages = data.get(MAX_PAGES_CONFIG_KEY)
         if max_pages is not None:
             gwn_config.max_pages = int(max_pages)
-        refresh_period_s = data.get(REFRESH_PERIOD_S_CONFIG_KEY)
-        if refresh_period_s is not None:
-            gwn_config.refresh_period_s = int(refresh_period_s)
         exclude_passphrase = data.get(EXCLUDE_PASSPHRASE_CONFIG_KEY)
         if exclude_passphrase is not None:
             gwn_config.exclude_passphrase = GwnLibInterface.parse_int_list(data.get(EXCLUDE_PASSPHRASE_CONFIG_KEY))
@@ -77,3 +60,28 @@ class GwnLibInterface:
         gwn_config.ssid_name_to_device_binding = True
         gwn_config.no_publish = False
         return gwn_config
+
+    @staticmethod
+    def parse_int_list(value: str | list[int] | None) -> list[int]:
+        if isinstance(value, list):
+            return value
+        if value is None or value.strip() == "":
+            return []
+        return [int(item.strip()) for item in value.split(",") if item.strip()]
+
+    @staticmethod
+    def parse_str_list(value: str | list[str] | None) -> list[str]:
+        if isinstance(value, list):
+            return value
+        if value is None or value.strip() == "":
+            return []
+        return [GwnConfig.normalise_mac(item.strip()) for item in value.split(",") if item.strip()]
+
+    @staticmethod
+    def build_integration_config(data: dict[str, Any]) -> IntegrationConfig:
+        integration_config: IntegrationConfig = IntegrationConfig(gwn_config=GwnLibInterface._build_gwn_config(data))
+        refresh_period_s = data.get(REFRESH_PERIOD_S_CONFIG_KEY)
+        if refresh_period_s is not None:
+            integration_config.refresh_period_s = int(refresh_period_s)
+        return integration_config
+
