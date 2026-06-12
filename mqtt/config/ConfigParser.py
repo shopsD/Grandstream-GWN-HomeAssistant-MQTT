@@ -360,7 +360,7 @@ class ConfigParser:
                 if app_refresh_period_s < 0:
                     raise ConfigParserError("app.refresh_period_s must be >= 0")
                 app_config.refresh_period_s = app_refresh_period_s
-                
+
         _LOGGER.debug(f"App Config|Publish on Poll: '{app_config.publish_every_poll}'|Unpublish Initial Data: '{app_config.unpublish_initial_data}'|Check for Updates: '{app_config.check_for_updates}'|Allow Pre-release Updates: '{app_config.allow_pre_release_update}'|Update Check Period: '{app_config.update_check_period_s}s'|GWN Poll Period: '{app_config.refresh_period_s}'")
         return app_config
 

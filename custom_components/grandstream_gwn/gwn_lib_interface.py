@@ -84,4 +84,3 @@ class GwnLibInterface:
         if refresh_period_s is not None:
             integration_config.refresh_period_s = int(refresh_period_s)
         return integration_config
-
