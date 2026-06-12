@@ -128,7 +128,6 @@ The library contains a `GwnConfig` class which must be pre-populated and passed 
 | `password` | No | `null` | Pre-Hashed GWN Manager password. A hash can be acquired by calling `GwnConfig.hash_password(plaintext_password)`. Must be supplied with `username` otherwise the library will be in `read_only` mode |
 | `page_size` | No | `10` | Page size for paginated GWN API requests. Must be `>= 1`. |
 | `max_pages` | No | `0` | Maximum pages to request. `0` means unlimited. Must be `>= 0`. |
-| `refresh_period_s` | No | `30` | Poll interval in seconds. Must be `>= 0`. |
 | `exclude_passphrase` | No | `[]` | SSID IDs whose passphrase should not be exposed. The library will set the value to `None` for any SSIDs that match the list. |
 | `exclude_ssid` | No | `[]` | SSID IDs to exclude entirely. |
 | `exclude_device` | No | `[]` | Device MAC addresses to exclude entirely. |
@@ -187,6 +186,11 @@ The following options are specified as a comma seperated list (E.g. `1,4,6` or `
 - `exclude_ssid`
 - `exclude_device`
 - `exclude_network`
+
+The following options are specific to the integration and are not found in the __Library Configuration Options__
+| Field | Required | Default | Behaviour |
+| --- | --- | --- | --- |
+| `refresh_period_s` | No | `30` | Poll interval of the GWN Manager seconds. Must be `>= 0`. |
 
 # GWN MQTT Bridge
 
@@ -281,16 +285,46 @@ Run the command
 ```bash
 docker compose up -d
 ```
+or
+```bash
+docker run -d \
+  --name gwn-mqtt-bridge \
+  --restart unless-stopped \
+  -v "./config:/config" \
+  ghcr.io/shopsd/homeassistant-grandstream-gwn:latest
+```
 
-Once it has finished building, if you want to generate a hashed password you can run the command
+Once it has finished building or downloading, if you want to generate a hashed password you can run the command
 ```bash
 docker exec -it gwn-mqtt-bridge gwn_mqtt -p
 ```
+or if not using compose
+```bash
+docker run --rm -it ghcr.io/shopsd/homeassistant-grandstream-gwn:latest -p
+```
+
 to interactively generate the hashed password or 
 ```bash
 docker exec -it gwn-mqtt-bridge gwn_mqtt -p <your_plaintext_password>
 ```
+or if not using compose
+```bash
+docker run --rm -it ghcr.io/shopsd/homeassistant-grandstream-gwn:latest -p <your_plaintext_password>
+```
 to non-interactively generate the hashed password
+
+To perform the unpublish in docker you must remove the `restart: unless-stopped` line from the `docker-compose.yml` file and then run this command
+```bash
+docker compose run gwn-mqtt-bridge -u
+```
+If performing an uninstall, then run the command to cleanup the container
+```bash
+docker compose run --rm gwn-mqtt-bridge -u
+```
+or if not using compose
+```bash
+docker run --rm -it ghcr.io/shopsd/homeassistant-grandstream-gwn:latest -u
+```
 
 ## Definitions
 
@@ -338,6 +372,7 @@ app:
   check_for_updates: True
   allow_pre_release_update: False
   update_check_period_s: 21600
+  refresh_period_s: 30
 mqtt:
   host: 127.0.0.1
   port: 1883
@@ -379,7 +414,6 @@ gwn:
   hashed_password: CHANGE_ME
   page_size: 10
   max_pages: 0
-  refresh_period_s: 30
   exclude_passphrase:
     - 3
   exclude_ssid:
@@ -406,6 +440,8 @@ logging:
 | `check_for_updates` | No | `true` | If `true`, the bridge checks if there is a newer version of the bridge and publishes it over MQTT if a new version is found. The current version will always be published at least once regardless of this setting|
 | `allow_pre_release_update` | No | `false` | If `true`, the bridge will notify of a new version even if it is classed as a pre-release version (such as beta). |
 | `update_check_period_s` | No | `21600` | This is the number of seconds between each attempt to check for an updated version. Default is `6 hours`. Setting this too low may cause you to exceed Github query limits. Minimum is `60 seconds`|
+| `refresh_period_s` | No | `30` | Poll interval in seconds. Must be `>= 0`. |
+
 ## `mqtt` Config
 
 | Field | Required | Default | Behaviour |
@@ -995,6 +1031,7 @@ If you want to run tools directly from the virtual environment:
 
 | Area | Notes |
 | --- | --- |
-| Native Home Assistant integration | Build a real config flow, coordinator, read-only entities, then write-capable entities. |
+| Home Assistant Client/Integration | Use more entity native types |
+| MQTT Bridge | Control bridge application such as self update and restart |
 | Tests | Add pytest coverage once the behaviour settles. |
 | Web UI | Possible stretch goal |

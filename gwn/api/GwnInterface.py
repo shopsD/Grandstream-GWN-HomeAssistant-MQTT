@@ -194,10 +194,6 @@ class GwnInterface:
         return response.get("authorisation", None)
 
     @property
-    def refresh_period(self) -> int:
-        return self._config.refresh_period_s
-
-    @property
     def user_password_login(self) -> bool:
         return self._config.username is not None and self._config.password is not None
 

@@ -30,6 +30,7 @@ from .const import (
     USERNAME_CONFIG_KEY
 )
 from .gwn_lib_interface import GwnLibInterface
+from .integration_config import IntegrationConfig
 from gwn.api import GwnClient
 from gwn.authentication import GwnConfig
 from gwn.constants import Constants
@@ -39,7 +40,7 @@ _LOGGER = logging.getLogger(Constants.LOG)
 
 @dataclass(slots=True)
 class FlowData:
-    gwn_config: GwnConfig | None = None
+    integration_config: IntegrationConfig | None = None
     gwn_client: GwnClient | None = None
     data: dict[str, Any] = field(default_factory=dict)
     errors: dict[str, str] = field(default_factory=dict)
@@ -160,8 +161,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data[BASE_URL_CONFIG_KEY] = base_url
 
             if len(errors) == 0:
-                gwn_config: GwnConfig = GwnLibInterface.build_gwn_config(data)
-                gwn_client: GwnClient = GwnClient(gwn_config) # prevent a double login so preserve the client if the authentication succeeds
+                integration_config: IntegrationConfig = GwnLibInterface.build_integration_config(data)
+                gwn_client: GwnClient = GwnClient(integration_config.gwn_config) # prevent a double login so preserve the client if the authentication succeeds
                 authenticated: bool = False
                 try:
                     authenticated = await gwn_client.authenticate()
@@ -169,7 +170,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     _LOGGER.error(f"Config Flow: Failed to Authenticate against {base_url}: {e}")
                 if authenticated:
                     _LOGGER.debug(f"Config Flow: Successfully Authenticated against {base_url}")
-                    return FlowData(gwn_config=gwn_config, gwn_client=gwn_client, data=data, user_input=dict(user_input), authenticated=True)
+                    return FlowData(integration_config=integration_config, gwn_client=gwn_client, data=data, user_input=dict(user_input), authenticated=True)
                 await gwn_client.close()
                 errors["base"] = "user_pass_authentication_failed" if gwn_client.api_authenticated else "api_authentication_failed"
             return FlowData(data=data, user_input=dict(user_input), errors=errors)
@@ -177,25 +178,25 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     def create_config_schema(input_overrides: dict[str, Any] | None = None, read_only: bool = False) -> vol.Schema:
-        defaults: GwnConfig = GwnConfig("", "")
+        defaults: IntegrationConfig = IntegrationConfig(gwn_config=GwnConfig("", ""))
         if input_overrides is None:
             _LOGGER.debug("Config Flow: No overridden inputs for config flow. Defaults will be used")
             input_overrides = {}
         return vol.Schema(
             {
-                vol.Required(APP_ID_CONFIG_KEY, default=input_overrides.get(APP_ID_CONFIG_KEY, defaults.app_id)): str,
-                vol.Required(SECRET_KEY_CONFIG_KEY, default=input_overrides.get(SECRET_KEY_CONFIG_KEY, defaults.secret_key)): str,
-                vol.Optional(RESTRICTED_API_CONFIG_KEY, default=input_overrides.get(RESTRICTED_API_CONFIG_KEY, defaults.restricted_api)): bool,
-                vol.Optional(USERNAME_CONFIG_KEY, description={"suggested_value": input_overrides.get(USERNAME_CONFIG_KEY, "" if defaults.username is None else defaults.username)}): str,
+                vol.Required(APP_ID_CONFIG_KEY, default=input_overrides.get(APP_ID_CONFIG_KEY, defaults.gwn_config.app_id)): str,
+                vol.Required(SECRET_KEY_CONFIG_KEY, default=input_overrides.get(SECRET_KEY_CONFIG_KEY, defaults.gwn_config.secret_key)): str,
+                vol.Optional(RESTRICTED_API_CONFIG_KEY, default=input_overrides.get(RESTRICTED_API_CONFIG_KEY, defaults.gwn_config.restricted_api)): bool,
+                vol.Optional(USERNAME_CONFIG_KEY, description={"suggested_value": input_overrides.get(USERNAME_CONFIG_KEY, "" if defaults.gwn_config.username is None else defaults.gwn_config.username)}): str,
                 vol.Optional(PASSWORD_CONFIG_KEY, default=""): str,
-                vol.Optional(BASE_URL_CONFIG_KEY, default=input_overrides.get(BASE_URL_CONFIG_KEY, defaults.base_url)): TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT, read_only=read_only)),
-                vol.Optional(PAGE_SIZE_CONFIG_KEY, default=input_overrides.get(PAGE_SIZE_CONFIG_KEY, defaults.page_size)): int,
-                vol.Optional(MAX_PAGES_CONFIG_KEY, default=input_overrides.get(MAX_PAGES_CONFIG_KEY, defaults.max_pages)): int,
+                vol.Optional(BASE_URL_CONFIG_KEY, default=input_overrides.get(BASE_URL_CONFIG_KEY, defaults.gwn_config.base_url)): TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT, read_only=read_only)),
+                vol.Optional(PAGE_SIZE_CONFIG_KEY, default=input_overrides.get(PAGE_SIZE_CONFIG_KEY, defaults.gwn_config.page_size)): int,
+                vol.Optional(MAX_PAGES_CONFIG_KEY, default=input_overrides.get(MAX_PAGES_CONFIG_KEY, defaults.gwn_config.max_pages)): int,
                 vol.Optional(REFRESH_PERIOD_S_CONFIG_KEY, default=input_overrides.get(REFRESH_PERIOD_S_CONFIG_KEY, defaults.refresh_period_s)): int,
-                vol.Optional(EXCLUDE_PASSPHRASE_CONFIG_KEY, description={"suggested_value": input_overrides.get(EXCLUDE_PASSPHRASE_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_passphrase))}): str,
-                vol.Optional(EXCLUDE_SSID_CONFIG_KEY, description={"suggested_value": input_overrides.get(EXCLUDE_SSID_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_ssid))}): str,
-                vol.Optional(EXCLUDE_DEVICE_CONFIG_KEY, description={"suggested_value": input_overrides.get(EXCLUDE_DEVICE_CONFIG_KEY, ",".join(defaults.exclude_device))}): str,
-                vol.Optional(EXCLUDE_NETWORK_CONFIG_KEY, description={"suggested_value": input_overrides.get(EXCLUDE_NETWORK_CONFIG_KEY, ",".join(str(id) for id in defaults.exclude_network))}): str,
+                vol.Optional(EXCLUDE_PASSPHRASE_CONFIG_KEY, description={"suggested_value": input_overrides.get(EXCLUDE_PASSPHRASE_CONFIG_KEY, ",".join(str(id) for id in defaults.gwn_config.exclude_passphrase))}): str,
+                vol.Optional(EXCLUDE_SSID_CONFIG_KEY, description={"suggested_value": input_overrides.get(EXCLUDE_SSID_CONFIG_KEY, ",".join(str(id) for id in defaults.gwn_config.exclude_ssid))}): str,
+                vol.Optional(EXCLUDE_DEVICE_CONFIG_KEY, description={"suggested_value": input_overrides.get(EXCLUDE_DEVICE_CONFIG_KEY, ",".join(defaults.gwn_config.exclude_device))}): str,
+                vol.Optional(EXCLUDE_NETWORK_CONFIG_KEY, description={"suggested_value": input_overrides.get(EXCLUDE_NETWORK_CONFIG_KEY, ",".join(str(id) for id in defaults.gwn_config.exclude_network))}): str,
             }
         )
 
@@ -206,13 +207,13 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         existing_entries: list[ConfigEntry] = self.hass.config_entries.async_entries(DOMAIN)
         flow_data: FlowData = await ConfigFlow.build_and_validate_config(self.flow_id, existing_entries, user_input)
 
-        if not flow_data.authenticated or flow_data.gwn_config is None:
+        if not flow_data.authenticated or flow_data.integration_config is None:
             return self.async_show_form(step_id="user", data_schema=ConfigFlow.create_config_schema(flow_data.user_input), errors=flow_data.errors)
 
         self.hass.data.setdefault(DOMAIN, {})
         self.hass.data[DOMAIN].setdefault(CLIENT_CONFIG_KEY, {})
-        self.hass.data[DOMAIN][CLIENT_CONFIG_KEY][self.flow_id] = {CLIENT_KEY: flow_data.gwn_client, CONFIG_KEY: flow_data.gwn_config}
-        return self.async_create_entry(title=flow_data.gwn_config.base_url, data=flow_data.data)
+        self.hass.data[DOMAIN][CLIENT_CONFIG_KEY][self.flow_id] = {CLIENT_KEY: flow_data.gwn_client, CONFIG_KEY: flow_data.integration_config}
+        return self.async_create_entry(title=flow_data.integration_config.gwn_config.base_url, data=flow_data.data)
 
     @staticmethod
     @callback
@@ -226,9 +227,9 @@ class OptionsFlowHandler(OptionsFlow):
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         current_data: dict[str, Any] = dict(self._config_entry.data)
         flow_id: str = str(current_data.get(FLOW_ID_KEY, self._config_entry.entry_id))
-        current_config: GwnConfig = GwnLibInterface.build_gwn_config(current_data)
-        previous_password: str | None = current_config.password
-        previous_username: str | None = current_config.username
+        current_config: IntegrationConfig = GwnLibInterface.build_integration_config(current_data)
+        previous_password: str | None = current_config.gwn_config.password
+        previous_username: str | None = current_config.gwn_config.username
         if user_input is None:
             return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(current_data, True), errors={})
         # base url can't be editied since True is passed in to the create_config_schema so no need to fetch all existing entries to check against
@@ -238,7 +239,7 @@ class OptionsFlowHandler(OptionsFlow):
             return self.async_show_form(step_id="init", data_schema=ConfigFlow.create_config_schema(flow_data.user_input, True), errors=flow_data.errors)
         self.hass.data.setdefault(DOMAIN, {})
         self.hass.data[DOMAIN].setdefault(CLIENT_CONFIG_KEY, {})
-        self.hass.data[DOMAIN][CLIENT_CONFIG_KEY][flow_id] = {CLIENT_KEY: flow_data.gwn_client, CONFIG_KEY: flow_data.gwn_config}
+        self.hass.data[DOMAIN][CLIENT_CONFIG_KEY][flow_id] = {CLIENT_KEY: flow_data.gwn_client, CONFIG_KEY: flow_data.integration_config}
 
         self.hass.config_entries.async_update_entry(self._config_entry, data=flow_data.data)
         await self.hass.config_entries.async_reload(self._config_entry.entry_id)

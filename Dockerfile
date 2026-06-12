@@ -25,4 +25,5 @@ RUN uv sync --frozen --no-dev --python /usr/local/bin/python3
 
 VOLUME ["/config"]
 
-CMD ["gwn_mqtt", "--config_path", "/config/config.yml"]
+ENTRYPOINT ["gwn_mqtt", "--config_path", "/config/config.yml"]
+CMD []

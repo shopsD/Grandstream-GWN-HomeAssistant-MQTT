@@ -398,11 +398,6 @@ class GwnClient:
             for item in raw_values if item.get("value") not in (None, "") and item.get("key") is not None
         }
 
-
-    @property
-    def refresh_period(self) -> int:
-        return self._config.refresh_period_s
-
     @property
     def is_readonly(self) -> bool:
         return not self._interface.user_password_login
