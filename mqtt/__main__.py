@@ -79,6 +79,17 @@ def main() -> None:
         ,default=False
         ,help="Use this to unpublish all MQTT topics. Supplying this option will launch the application, unpublish the data. If the `unpublish_initial_data` is specified in the config, then the GWN Manager will be queried to unpublish its data too"
     )
+    parser.add_argument(
+        "-v"
+        ,"--version"
+        ,action="store_true"
+        ,default=False
+        ,help="Displays the version of the application then exits"
+    )
+
+    args = parser.parse_args()
+    if args.version:
+        return print(f"{Constants.APP_VERSION}")
 
     args = parser.parse_args()
     if args.password is not None:
