@@ -42,13 +42,15 @@ def init_logger(config: LoggingConfig) -> None:
     logging.getLogger(Constants.LOG).setLevel(log_level)
     _LOGGER.info("Logging Initialised")
 
-async def async_main(config_path: Path) -> None:
+async def async_main(config_path: Path, unpublish_only: bool) -> None:
     core_config = ConfigParser.load(config_path)
     init_logger(core_config.logging)
     mqtt_client = MqttClient(core_config.mqtt)
     gwn_client = GwnClient(core_config.gwn)
     app_manager = MqttGwnManager(core_config.app, mqtt_client, gwn_client)
-    if await app_manager.connect():
+    if unpublish_only: 
+        await app_manager.run_uninstall()
+    elif await app_manager.connect():
         await app_manager.run()
 
 def main() -> None:
@@ -70,6 +72,13 @@ def main() -> None:
         ,const=""
         ,help="Your password for logging in to GWN Manager. Supplying this option will hash then display the value to use in the config file gwn.hashed_password field, then exit the application"
     )
+    parser.add_argument(
+        "-u"
+        ,"--unpublish"
+        ,type=bool
+        ,default=False
+        ,help="Use this to unpublish all MQTT topics. Supplying this option will launch the application, unpublish the data. If the `unpublish_initial_data` is specified in the config, then the GWN Manager will be queried to unpublish its data too"
+    )
 
     args = parser.parse_args()
     if args.password is not None:
@@ -84,7 +93,7 @@ def main() -> None:
         return print(ConfigParser.get_hash(password))
 
     _LOGGER.info("Starting GWN Manager to MQTT")
-    asyncio.run(async_main(args.config_path))
+    asyncio.run(async_main(args.config_path, args.unpublish))
     _LOGGER.info("Stopped GWN Manager to MQTT")
 
 if __name__ == "__main__":
