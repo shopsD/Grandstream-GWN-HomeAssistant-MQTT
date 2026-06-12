@@ -148,7 +148,7 @@ The recommended way of installing the integration is via [HACS](https://www.hacs
 
 1. In HACS click `Custom Repositories`
 2. Add the following values
-  - Repository: `https://github.com/shopsD/homeassistant-grandstream-gwn`
+  - Repository: `https://github.com/shopsD/grandstream-gwn-homeassistant-mqtt`
   - Type: `Integration`
 3. Search for `Grandstream GWN Manager Bridge`
 4. Click `Download`
