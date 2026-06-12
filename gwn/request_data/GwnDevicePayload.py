@@ -62,13 +62,7 @@ class GwnDevicePayload:
         "ap_alternate_dns",
         "ap_band_steering",
         "ap_mac",
-        "ap_name",
-        "ap_6g_channel",
-        "ap_6g_power",
-        "ap_6g_ratelimit_enable",
-        "ap_6g_rssi",
-        "ap_6g_rssi_enable",
-        "ap_6g_width"
+        "ap_name"
     ]
 
     NON_SERIALISED: ClassVar[list[str]] = ["networkId", "reboot", "reset", "update", "target_network"]
