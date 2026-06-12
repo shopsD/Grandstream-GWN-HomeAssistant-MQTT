@@ -222,7 +222,7 @@ The packaged config contains placeholders. For real use, create a private config
 | --- | --- | --- |
 | `-c`, `--config_path PATH` | No | Path to the YAML config file. Defaults to `mqtt/data/config.yml` inside the package. |
 | `-p`, `--password [PASSWORD]` | No | Hashes a GWN Manager password and prints the value to use in `gwn.hashed_password`, then exits. |
-| `-u`, `--unpublish` | No | Unpublishes all MQTT topics, then exits. This will also check if the `gwn.unpublish_initial_data` is set in the config. If so, then it will first clear the manifest, then query the GWN Manager for the latest data and unpublish those as well then exit. |
+| `-u`, `--unpublish` | No | Unpublishes all MQTT topics, then exits. This will also check if the `app.unpublish_initial_data` is set in the config. If so, then it will first clear the manifest, then query the GWN Manager for the latest data and unpublish those as well then exit. |
 
 Password hashing with an interactive prompt:
 

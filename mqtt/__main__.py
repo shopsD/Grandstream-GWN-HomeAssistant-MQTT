@@ -48,7 +48,7 @@ async def async_main(config_path: Path, unpublish_only: bool) -> None:
     mqtt_client = MqttClient(core_config.mqtt)
     gwn_client = GwnClient(core_config.gwn)
     app_manager = MqttGwnManager(core_config.app, mqtt_client, gwn_client)
-    if unpublish_only: 
+    if unpublish_only:
         await app_manager.run_uninstall()
     elif await app_manager.connect():
         await app_manager.run()
@@ -75,7 +75,7 @@ def main() -> None:
     parser.add_argument(
         "-u"
         ,"--unpublish"
-        ,type=bool
+        ,action="store_true"
         ,default=False
         ,help="Use this to unpublish all MQTT topics. Supplying this option will launch the application, unpublish the data. If the `unpublish_initial_data` is specified in the config, then the GWN Manager will be queried to unpublish its data too"
     )

@@ -610,7 +610,7 @@ class MqttGwnManager:
             await self._version_manager.close()
         _LOGGER.info("Application shutting down")
 
-    async def run_uninstall(self, unpublish_initial_data: bool = False) -> None:
+    async def run_uninstall(self) -> None:
         try:
             _LOGGER.debug("Connecting to MQTT Server")
             if not await self._mqtt_client.connect():
@@ -619,7 +619,7 @@ class MqttGwnManager:
             _LOGGER.info("Unpublishing all data from manifest")
             await self._mqtt_client.unpublish_manifest()
 
-            if unpublish_initial_data:
+            if self._config.unpublish_initial_data:
                 _LOGGER.debug("Connecting to GWN Manager")
                 if not await self._gwn_client.authenticate():
                     raise AuthenticationError("Failed to acquire access token from GWN Manager")
