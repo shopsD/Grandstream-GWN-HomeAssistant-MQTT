@@ -18,7 +18,7 @@ class Width5G(Enum):
     MHz_20 = 0
     MHz_40 = 1
     MHz_80 = 2
-    MHz_160 = 3 # undocumented
+    MHz_160 = 3
     UseRadioSetting = 4
 
 class BandSteering(Enum):
@@ -26,19 +26,16 @@ class BandSteering(Enum):
     Priority_2G4 = 1
     Priority_5G = 2
     Priority_Balance = 3
-    UseRadioSetting = 4 # undocumented
-    Priority_6G = 5 # undocumented
+    UseRadioSetting = 4
+    Priority_6G = 5
 
-# below are undocumented enums
-
-# 6GHz is undocumented so this cannot be confirmed
 class Width6G(Enum):
     MHz_20 = 0
     MHz_40 = 1
     MHz_80 = 2
     MHz_160 = 3
-    MHz_320 = 4
-    UseRadioSetting = 5
+    UseRadioSetting = 4
+    MHz_320 = 5
 
 class BooleanEnum(Enum):
     Disabled = 0
@@ -100,8 +97,8 @@ class WpaEncryption(Enum):
     AES_TKIP = 1
 
 class WpaKeyMode(Enum):
-    MODE_PSK = 0
-    MODE_802_1X = 1
+    MODE_PSK = 0 # previously documented but now undocumented
+    MODE_802_1X = 1 # previously documented but now undocumented
     MODE_PSK_SAE = 2 # undocumented but confirmed via grandstream customer support
     MODE_SAE = 3 # undocumented but confirmed via grandstream customer support
     MODE_UNKNOWN = 4 # grandstream customer support could not determine what this value actually is

@@ -24,7 +24,7 @@ class ReleaseInfo:
 class VersionManager:
     def __init__(self, config: AppConfig) -> None:
         self._config: AppConfig = config
-        self._update_url: str = "https://api.github.com/repos/shopsD/homeassistant-grandstream-gwn/releases"
+        self._update_url: str = "https://api.github.com/repos/shopsD/grandstream-gwn-homeassistant-mqtt/releases"
         self._session: aiohttp.ClientSession | None = None
         self._timeout = aiohttp.ClientTimeout(total=15)
         self._is_container: bool = os.getenv("GWN_MQTT_CONTAINER", "").lower() == "true"

@@ -4,7 +4,7 @@ from typing import ClassVar
 @dataclass(slots=True)
 class Constants:
     LOG: ClassVar[str] = "gwn_mqtt"
-    APP_VERSION: ClassVar[str] = "0.0.3"
+    APP_VERSION: ClassVar[str] = "0.0.4"
 
     # mqtt keys
     # ssid
