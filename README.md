@@ -188,6 +188,8 @@ The following options are specified as a comma seperated list (E.g. `1,4,6` or `
 - `exclude_network`
 
 The following options are specific to the integration and are not found in the __Library Configuration Options__
+| Field | Required | Default | Behaviour |
+| --- | --- | --- | --- |
 | `refresh_period_s` | No | `30` | Poll interval of the GWN Manager seconds. Must be `>= 0`. |
 
 # GWN MQTT Bridge
@@ -283,7 +285,7 @@ Run the command
 ```bash
 docker compose up -d
 ```
-or 
+or
 ```bash
 docker run -d \
   --name gwn-mqtt-bridge \
@@ -298,7 +300,7 @@ docker exec -it gwn-mqtt-bridge gwn_mqtt -p
 ```
 or if not using compose
 ```bash
-docker run --rm -it ghcr.io/shopsd/homeassistant-grandstream-gwn:latest gwn_mqtt -p
+docker run --rm -it ghcr.io/shopsd/homeassistant-grandstream-gwn:latest -p
 ```
 
 to interactively generate the hashed password or 
@@ -307,7 +309,7 @@ docker exec -it gwn-mqtt-bridge gwn_mqtt -p <your_plaintext_password>
 ```
 or if not using compose
 ```bash
-docker run --rm -it ghcr.io/shopsd/homeassistant-grandstream-gwn:latest gwn_mqtt -p <your_plaintext_password>
+docker run --rm -it ghcr.io/shopsd/homeassistant-grandstream-gwn:latest -p <your_plaintext_password>
 ```
 to non-interactively generate the hashed password
 
@@ -319,11 +321,9 @@ If performing an uninstall, then run the command to cleanup the container
 ```bash
 docker compose run --rm gwn-mqtt-bridge -u
 ```
-
-If not using compose, then run the command
 or if not using compose
 ```bash
-docker run --rm -it ghcr.io/shopsd/homeassistant-grandstream-gwn:latest gwn_mqtt -u
+docker run --rm -it ghcr.io/shopsd/homeassistant-grandstream-gwn:latest -u
 ```
 
 ## Definitions
