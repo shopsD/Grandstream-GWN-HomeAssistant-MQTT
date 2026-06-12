@@ -324,8 +324,10 @@ docker compose run --rm gwn-mqtt-bridge -u
 ```
 or if not using compose
 ```bash
-docker run --rm -it ghcr.io/shopsd/grandstream-gwn-homeassistant-mqtt:latest -u
+docker run -v "./config:/config" --rm -it ghcr.io/shopsd/grandstream-gwn-homeassistant-mqtt:latest -u
 ```
+
+Remember to replace `./config` with the folder to the folder on your host containing the `config.yml` file
 
 ## Definitions
 
