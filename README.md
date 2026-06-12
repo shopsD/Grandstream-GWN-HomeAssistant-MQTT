@@ -283,16 +283,48 @@ Run the command
 ```bash
 docker compose up -d
 ```
+or 
+```bash
+docker run -d \
+  --name gwn-mqtt-bridge \
+  --restart unless-stopped \
+  -v "./config:/config" \
+  ghcr.io/shopsd/homeassistant-grandstream-gwn:latest
+```
 
-Once it has finished building, if you want to generate a hashed password you can run the command
+Once it has finished building or downloading, if you want to generate a hashed password you can run the command
 ```bash
 docker exec -it gwn-mqtt-bridge gwn_mqtt -p
 ```
+or if not using compose
+```bash
+docker run --rm -it ghcr.io/shopsd/homeassistant-grandstream-gwn:latest gwn_mqtt -p
+```
+
 to interactively generate the hashed password or 
 ```bash
 docker exec -it gwn-mqtt-bridge gwn_mqtt -p <your_plaintext_password>
 ```
+or if not using compose
+```bash
+docker run --rm -it ghcr.io/shopsd/homeassistant-grandstream-gwn:latest gwn_mqtt -p <your_plaintext_password>
+```
 to non-interactively generate the hashed password
+
+To perform the unpublish in docker you must remove the `restart: unless-stopped` line from the `docker-compose.yml` file and then run this command
+```bash
+docker compose run gwn-mqtt-bridge -u
+```
+If performing an uninstall, then run the command to cleanup the container
+```bash
+docker compose run --rm gwn-mqtt-bridge -u
+```
+
+If not using compose, then run the command
+or if not using compose
+```bash
+docker run --rm -it ghcr.io/shopsd/homeassistant-grandstream-gwn:latest gwn_mqtt -u
+```
 
 ## Definitions
 
@@ -1000,6 +1032,6 @@ If you want to run tools directly from the virtual environment:
 | Area | Notes |
 | --- | --- |
 | Home Assistant Client/Integration | Use more entity native types |
-| MQTT Bridge | Control bridge application such as self update, and support for `-u` in the docker |
+| MQTT Bridge | Control bridge application such as self update and restart |
 | Tests | Add pytest coverage once the behaviour settles. |
 | Web UI | Possible stretch goal |
