@@ -1,13 +1,5 @@
 # HomeAssistant-Grandstream-GWN
 
-> [!Important]
-> This repository will be moving to
->
-> `https://github.com/shopsD/Grandstream-GWN-HomeAssistant-MQTT`
->
-> in release v0.0.4 - Planned 12 June 2026
-> v0.0.4 will be the final release before v0.1.0
-
 <img src="./assets/logo.png" alt="GWN to MQTT Bridge" width="300px"/>
 
 GG-HAM (Grandstream GWN - Home Assistant/MQTT) is a project created for the desire to automate some capability found with Grandstream network products, particularly Access Points. This tool is meant to serve as a way of viewing and controlling Grandstream Networks, Devices and SSIDs using the GWN Manager and be easy to integrate with tools like Home Assistant and Node Red. It is not meant as a replacement for GWN Manager but rather a supplement to it.
@@ -45,6 +37,7 @@ The different components have different licenses as shown below
 ### GWN Manager tested versions
 
 - 1.1.35.10
+- 1.1.37.8
 
 ### GWN Manager Accounts
 
@@ -991,7 +984,7 @@ If you want to run tools directly from the virtual environment:
 - Due to the way the Grandstream API works, several values cannot be retrieved via an API key alone. This is why username and password are required. This includes identifying what SSIDs are assigned to a device by SSID ID rather than name since the GWN Manager allows SSIDs with the same name
 - When using the Home Assistant MQTT payloads, sometimes a value will briefly toggle to its old value after editing. This is because after changing a value, the application retrieves the latest values from GWN Manager and republishes it over MQTT. This delay makes Home Assistant reset to the old value, but it should change to the new value within a few seconds
 - MAC Addresses must either use `:` or `-` as separators. No separators are also supported. The application does attempt to normalise them, so the values are not case sensitive
-- Many GWN API Commands/Response parameters are not fully documented or officially supported. This is particularly true with 6GHz related parameters. While Grandstream customer support have provided additional confirmation of some variables and behaviours, some items use workarounds such as the "browser based calls" (calls that copy what the GWN Manager Web App does) using username/password have been implemented. However, since these are not part of the official API, they may be prone to breaking in future updates. This was tested against Version `1.1.35.10` of the official GWN Manager Application
+- Some GWN API Commands/Response parameters are not fully documented or officially supported. While Grandstream customer support have provided additional confirmation of some variables and behaviours, some items use workarounds such as the "browser based calls" (calls that copy what the GWN Manager Web App does) using username/password have been implemented. However, since these are not part of the official API, they may be prone to breaking in future updates. This was tested against Version `1.1.37.8` of the official GWN Manager Application. Some previously documented values are also no longer present in the latest documentation but have been kept for backwares compatibility and may be removed in a future release
 - Boolean values in the config must never be in quotes otherwise they can be incorrectly processed
 - GWN Cloud has not been tested with this application
 

@@ -10,17 +10,17 @@ class GwnDevicePayload:
     networkId: int
     ap_2g4_channel: int | None = None
     ap_2g4_power: RadioPower | None = None
-    ap_2g4_ratelimit_enable: BooleanEnum | None = None
+    ap_2g4_ratelimit_enable: BooleanEnum | None = None # only values 1 and 0 are documented
     ap_2g4_rssi: int | None = None
     ap_2g4_rssi_enable: BooleanEnum | None = None
-    ap_2g4_tag: str | None = None
+    ap_2g4_tag: str | None = None # no longer documented. May not be required
     ap_2g4_width: Width2G | None = None
     ap_5g_channel: int | None = None
     ap_5g_power: RadioPower | None = None
-    ap_5g_ratelimit_enable: BooleanEnum | None = None
+    ap_5g_ratelimit_enable: BooleanEnum | None = None # only values 1 and 0 are documented
     ap_5g_rssi: int | None = None
     ap_5g_rssi_enable: BooleanEnum | None = None
-    ap_5g_tag: str | None = None
+    ap_5g_tag: str | None = None # no longer documented. May not be required
     ap_5g_width: Width5G | None = None
     ap_alternate_dns: str | None = None
     ap_band_steering: BandSteering | None = None
@@ -31,13 +31,13 @@ class GwnDevicePayload:
     ap_preferred_dns: str | None = None
     ap_static: bool | None = None
 
-    # 6GHz is Undocumented but grandstream customer support said it is available
     ap_6g_channel: int | None = None
     ap_6g_power: RadioPower | None = None
-    ap_6g_ratelimit_enable: BooleanEnum | None = None
+    ap_6g_ratelimit_enable: BooleanEnum | None = None # only values 1 and 0 are documented
     ap_6g_rssi: int | None = None
-    ap_6g_rssi_enable: BooleanEnum | None = None
-    ap_6g_tag: str | None = None
+    ap_6g_rssi_enable: BooleanEnum | None = None # only values 1 and 0 are documented
+    ap_6g_tag: str | None = None # no longer documented. May not be required
+
     ap_6g_width: Width6G | None = None
 
     target_network: int | None = None
@@ -52,26 +52,22 @@ class GwnDevicePayload:
         "ap_2g4_ratelimit_enable",
         "ap_2g4_rssi",
         "ap_2g4_rssi_enable",
-        "ap_2g4_tag",
         "ap_2g4_width",
         "ap_5g_channel",
         "ap_5g_power",
         "ap_5g_ratelimit_enable",
         "ap_5g_rssi",
         "ap_5g_rssi_enable",
-        "ap_5g_tag",
         "ap_5g_width",
         "ap_alternate_dns",
         "ap_band_steering",
         "ap_mac",
         "ap_name",
-        # since 6GHz is undocumented but grandstream customer support said it is available based on 2.4GHz and 5GHz
         "ap_6g_channel",
         "ap_6g_power",
         "ap_6g_ratelimit_enable",
         "ap_6g_rssi",
         "ap_6g_rssi_enable",
-        "ap_6g_tag",
         "ap_6g_width"
     ]
 
