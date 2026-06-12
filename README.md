@@ -327,7 +327,7 @@ or if not using compose
 docker run -v "./config:/config" --rm -it ghcr.io/shopsd/grandstream-gwn-homeassistant-mqtt:latest -u
 ```
 
-Remember to replace `./config` with the folder to the folder on your host containing the `config.yml` file
+__Remember to replace `./config` with the folder to the folder on your host containing the `config.yml` file__
 
 ## Definitions
 
