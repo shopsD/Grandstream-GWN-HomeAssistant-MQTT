@@ -14,7 +14,7 @@ It is made up of a Library, an MQTT Bridge application with support for Home Ass
 | --- | --- |
 | `gwn/` | Core GWN Manager client, authentication, constants, response models, and request payload models. It also serves as a library/API for interacting with GWN Manager via its API|
 | `mqtt/` | Runnable GWN-to-MQTT bridge. It polls GWN Manager, publishes retained MQTT state, receives MQTT commands, and optionally publishes Home Assistant discovery payloads. |
-| `custom_components/grandstream_gwn/` | Native Home Assistant integration workspace. This is not the main working integration yet. |
+| `custom_components/grandstream_gwn/` | Native Home Assistant integration workspace. |
 
 ## License
 `SPDX-License-Identifier: BSD-3-Clause AND MPL-2.0`
