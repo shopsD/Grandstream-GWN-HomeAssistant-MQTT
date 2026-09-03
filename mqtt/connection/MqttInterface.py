@@ -48,8 +48,10 @@ class MqttInterface:
                 _LOGGER.error("Client is already connected")
                 return self._connected
             tls_context = None
+            tls_insecure = None
             if self._config.tls:
                 tls_context = ssl.create_default_context()
+                tls_insecure = not self._config.verify_tls
             client = Client(
                 hostname=self._config.host,
                 port=self._config.port,
@@ -58,7 +60,7 @@ class MqttInterface:
                 identifier=self._config.client_id,
                 keepalive=self._config.keepalive,
                 tls_context = tls_context,
-                tls_insecure=not self._config.verify_tls,
+                tls_insecure=tls_insecure,
                 logger = _LOGGER,
                 will = Will(
                     topic=self._status_topic,

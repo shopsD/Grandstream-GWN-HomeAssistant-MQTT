@@ -160,6 +160,10 @@ class ConfigParser:
         no_publish = gwn_section.get("no_publish")
         if no_publish is not None:
             gwn_config.no_publish = bool(no_publish)
+        # gwn verify ssl
+        verify_ssl = gwn_section.get("verify_ssl")
+        if verify_ssl is not None:
+            gwn_config.verify_ssl = bool(verify_ssl)
         _LOGGER.debug(f"GWN Config|User/Password Provided: '{bool(gwn_config.username and gwn_config.password)}'|Using Restricted API: '{gwn_config.restricted_api}'|No Publish: '{gwn_config.no_publish}'|URL: '{gwn_config.base_url}'|Page Size: '{gwn_config.page_size}'|Max Pages: '{gwn_config.max_pages}'|No. of Excluded Networks: '{len(gwn_config.exclude_network)}'|No. of Excluded Devices: '{len(gwn_config.exclude_device)}'|No. of excluded SSIDs: '{len(gwn_config.exclude_ssid)}'|No. of SSIDs with Excluded WEP/WPA Passphrase: '{len(gwn_config.exclude_passphrase)}'")
 
         return gwn_config

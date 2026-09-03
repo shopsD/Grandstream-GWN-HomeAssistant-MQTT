@@ -55,7 +55,8 @@ class GwnInterface:
 
     def _established_session(self) -> aiohttp.ClientSession:
         if self._session is None:
-            self._session = aiohttp.ClientSession()
+            connector = aiohttp.TCPConnector(ssl=self._config.verify_ssl)
+            self._session = aiohttp.ClientSession(connector=connector)
         return self._session
 
     async def _post(self, path: str, body: dict[str, Any], bearer: bool = False) -> dict[str, Any] | None:

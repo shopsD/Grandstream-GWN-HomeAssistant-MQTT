@@ -18,6 +18,7 @@ class GwnConfig:
     ignore_failed_fetch_before_update: bool = False
     ssid_name_to_device_binding: bool = True
     no_publish: bool = False
+    verify_ssl: bool = True
     
     @staticmethod
     def normalise_mac(mac: str) -> str:
